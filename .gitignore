@@ -1,3 +1,7 @@
 .venv
 dpg.ini
 data
+.gitignore
+dpg.ini
+settings.json
+__pycache__

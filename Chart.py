@@ -34,7 +34,8 @@ class Chart():
 
     
     def load_symbols(self):
-        """This function will check if symbols are stored for the exchange, and if not it will save them then return the symbols list
+        """This function will check if symbols are stored for the exchange in /data/<exchange>, and if not it will save 
+        them to a csv file then return the symbols list. If it has them stored it will read and return.
 
         Returns:
             list: symbol list
@@ -60,6 +61,12 @@ class Chart():
 
     
     def load_timeframes(self):
+        """ This will check if the exchange has the data for their timeframes and return it. If not it will used a list of 
+        most likely timeframes. 
+
+        Returns:
+            list: List of timeframes for exchange
+        """
 
         if(self.api.has['fetchOHLCV']):
             timeframes = list(self.api.timeframes.keys())
@@ -79,7 +86,7 @@ class Chart():
         
         self.previous_symbol = symbol
         
-        candles = data.get_candles(self.api, symbol, timeframe, "2022-10-01T00:00:00Z", f'{self.exchange}-child', self.viewport_width, self.viewport_height)
+        candles = data.get_candles(self.api, symbol, timeframe, "2022-10-25T00:00:00Z", f'{self.exchange}-child', self.viewport_width, self.viewport_height)
 
         dpg.delete_item("loading")
 
@@ -132,52 +139,3 @@ class Chart():
                 dpg.add_listbox(self.timeframes, label="Timeframe", tag=f"timeframe-{self.exchange}", num_items=10)
 
                 dpg.add_button(label="Go", callback = self.push_chart)
-
-
-                
-
-            #     with dpg.popup(symbol, mousebutton=dpg.mvMouseButton_Left):
-
-            #         dpg.add_input_text(tag=f"symbols-searcher", hint="Search", callback=lambda sender, data: self.searcher(f"symbols-searcher", f"symbol", self.api.symbols))
-
-            #         dpg.add_listbox(self.api.symbols, tag=f'symbol', show=True, callback=lambda s, a: self.change_symbol(s, a, self.chart_id))
-
-            #     with dpg.popup(timeframe, mousebutton=dpg.mvMouseButton_Left):
-
-            #         dpg.add_listbox(self.api.timeframes, tag=f'timeframe', callback=lambda s, a : self.change_timeframe(s, a, self.chart_id), width=100)
-
-            #     with dpg.popup(date, mousebutton=dpg.mvMouseButton_Left):
-            #         # The default date will be the last saved date in the settings file
-
-            #         date = self.settings['last_since'].split("T")[0].split("-")
-            #         year = str(int(date[0][2:]))
-            #         year_ = f'1{year}'
-            #         since = {'month_day': int(date[2]), 'year':int(year_), 'month':int(date[1])}
-                    
-            #         dpg.add_date_picker(level=dpg.mvDatePickerLevel_Day, label='From', default_value=since)
-
-            # with dpg.subplots(2, 1, label="", width=-1, height=-1, link_all_x=True, row_ratios=[1.0, 0.25]):
-
-            #     with dpg.plot():
-
-            #         dpg.add_plot_legend()
-            #         xaxis_candle_tag = f'candle-series-xaxis'
-            #         dpg.add_plot_axis(dpg.mvXAxis, tag=xaxis_candle_tag, time=True)
-
-            #         with dpg.plot_axis(dpg.mvYAxis, tag=f'candle-series-yaxis', label="USD"):
-
-            #             dpg.add_candle_series(dates, opens, closes, lows, highs, tag=f'candle-series', time_unit=self.do.convert_timeframe(self.settings['last_timeframe']))
-            #             dpg.fit_axis_data(dpg.top_container_stack())
-            #             dpg.fit_axis_data(xaxis_candle_tag)
-                        
-            #     with dpg.plot():
-
-            #         dpg.add_plot_legend()
-            #         xaxis_volume_tag = f'volume-series-xaxis'
-            #         dpg.add_plot_axis(dpg.mvXAxis, label="Date", tag=xaxis_volume_tag, time=True)
-
-            #         with dpg.plot_axis(dpg.mvYAxis, label="USD", tag=f'volume-series-yaxis'):
-
-            #             dpg.add_bar_series(dates, volume, tag=f'volume-series', weight=1)
-            #             dpg.fit_axis_data(dpg.top_container_stack())
-            #             dpg.fit_axis_data(xaxis_volume_tag)
