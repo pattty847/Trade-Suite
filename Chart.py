@@ -57,7 +57,7 @@ class Chart():
             timeframes = list(self.api.timeframes.keys())
             return timeframes
         else:
-            with open(f"data\\timeframes.csv") as f:
+            with open(f"timeframes.csv") as f:
                 return f.readlines()
 
 
@@ -70,13 +70,17 @@ class Chart():
         timeframe = dpg.get_value('timeframe').strip()
         print(symbol, timeframe)
         
-        candles = data.get_candles(self.api, symbol, timeframe, "2022-10-01T00:00:00Z")
+        candles = data.get_candles(self.api, symbol, timeframe, "2022-10-01T00:00:00Z", f'{self.exchange}-child')
+        # ohlcv
 
-        # dpg.add_loading_indicator(circle_count=4, tag="loading")
+        dpg.delete_item("loading")
 
         print(candles)
         if not len(candles):
             print("No symbol for that exchange.")
+
+
+        # add plot to parent
 
 
     def add_chart(self):

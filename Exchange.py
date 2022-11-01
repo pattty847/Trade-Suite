@@ -1,6 +1,7 @@
 import os
 import ccxt as ccxt
 import pandas as pd
+import dearpygui.dearpygui as dpg
 
 def retry_fetch_ohlcv(max_retries:int, exchange:str, symbol: str, timeframe: str, since: str, limit: int):
     num_retries = 0
@@ -44,11 +45,9 @@ def scrape_ohlcv(max_retries:int, exchange:str, symbol: str, timeframe: str, sin
     return exchange.filter_by_since_limit(all_ohlcv, since, None, key=0)
 
 
-def get_candles(exchange: str, symbol: str, timeframe: str, since: str):
+def get_candles(exchange: str, symbol: str, timeframe: str, since: str, chart_id):
     
-    # if symbol not in self.symbols:
-    #     print(f'{self.exchange}: Does not have [{symbol}].')
-    #     return
+    dpg.add_loading_indicator(circle_count=4, parent=chart_id, tag="loading")
 
     columns = ['date', 'open', 'high', 'low', 'close', 'volume']
     sym = symbol.replace('/', '').lower() # remove /
@@ -65,6 +64,7 @@ def get_candles(exchange: str, symbol: str, timeframe: str, since: str):
         if len(ohlcv):
             ohlcv = pd.DataFrame(ohlcv, columns=columns) # pull ohlcv data
             ohlcv.to_csv(file, mode='w', index=False) # write to CSV file. 
+
         return pd.DataFrame(ohlcv, columns=columns)
 
     # # If the file exists load it
