@@ -1,5 +1,11 @@
 # Trade-Suite
-Trading Suite, a small trading client side project. Lots more to come. 
+## Trading Suite, a small trading client side project. Lots more to come. 
+
+### To run the application. 
+
+Run `pip install -r requirements.txt` in your virtual environment.
+
+Go to **main.py** and run python script.
 
 
 First Iteration Photo: 10/30/2022
