@@ -67,20 +67,20 @@ def get_candles(exchange: str, symbol: str, timeframe: str, since: str, chart_id
 
         return pd.DataFrame(ohlcv, columns=columns)
 
-    # # If the file exists load it
-    # old_candles = pd.read_csv(file)
-    # first_pull_time = old_candles.iat[0, 0] # first stored time
-    # last_pull_time = old_candles.iat[-1, 0] # last stored time
+    # If the file exists load it
+    old_candles = pd.read_csv(file)
+    first_pull_time = old_candles.iat[0, 0] # first stored time
+    last_pull_time = old_candles.iat[-1, 0] # last stored time
 
-    # # This part grabs new candles since last_pull_time and drops the first row because its a duplicate.
-    # new_candles = pd.DataFrame(scrape_ohlcv(3, exchange, symbol, timeframe, last_pull_time, 500), columns=columns)
-    # new_candles.drop(new_candles.head(1).index, inplace=True)
+    # This part grabs new candles since last_pull_time and drops the first row because its a duplicate.
+    new_candles = pd.DataFrame(scrape_ohlcv(3, exchange, symbol, timeframe, last_pull_time, 500), columns=columns)
+    new_candles.drop(new_candles.head(1).index, inplace=True)
     
-    # # We will conate the new candles with the old candles
-    # new_ohlcv = pd.concat([old_candles, new_candles], ignore_index=True)
+    # We will conate the new candles with the old candles
+    new_ohlcv = pd.concat([old_candles, new_candles], ignore_index=True)
 
-    # # Append the newest candles to their respective file
-    # new_candles.to_csv(file, mode='a', index=False, header=False)
+    # Append the newest candles to their respective file
+    new_candles.to_csv(file, mode='a', index=False, header=False)
 
-    # # Return all the candles
-    # return new_ohlcv
+    # Return all the candles
+    return new_ohlcv
