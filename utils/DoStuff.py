@@ -29,7 +29,7 @@ def get_time_in_past( days, month, year):
         return f"{y2}Z"
 
 
-def zscore( series: pd.Series):
+def zscore(series: pd.Series):
     """This will calculate the z-score of a series. 
 
     Args:
@@ -39,10 +39,73 @@ def zscore( series: pd.Series):
         _type_: Z-Score series
     """
     return (series - series.mean()) / pta.stdev(series)
+    
+
+def _config(sender, keyword, user_data):
+
+    widget_type = dpg.get_item_type(sender)
+    items = user_data
+
+    if widget_type == "mvAppItemType::mvRadioButton":
+        value = True
+
+    else:
+        keyword = dpg.get_item_label(sender)
+        value = dpg.get_value(sender)
+
+    if isinstance(user_data, list):
+        for item in items:
+            dpg.configure_item(item, **{keyword: value})
+    else:
+        dpg.configure_item(items, **{keyword: value})
+
+
+def _add_config_options(item, columns, *names, **kwargs):
+        
+    if columns == 1:
+        if 'before' in kwargs:
+            for name in names:
+                dpg.add_checkbox(label=name, callback=_config, user_data=item, before=kwargs['before'], default_value=dpg.get_item_configuration(item)[name])
+        else:
+            for name in names:
+                dpg.add_checkbox(label=name, callback=_config, user_data=item, default_value=dpg.get_item_configuration(item)[name])
+
+    else:
+
+        if 'before' in kwargs:
+            dpg.push_container_stack(dpg.add_table(header_row=False, before=kwargs['before']))
+        else:
+            dpg.push_container_stack(dpg.add_table(header_row=False))
+
+        for i in range(columns):
+            dpg.add_table_column()
+
+        for i in range(int(len(names)/columns)):
+
+            with dpg.table_row():
+                for j in range(columns):
+                    dpg.add_checkbox(label=names[i*columns + j], 
+                                        callback=_config, user_data=item, 
+                                        default_value=dpg.get_item_configuration(item)[names[i*columns + j]])
+        dpg.pop_container_stack()
+
+
+def searcher(searcher, result, search_list):
+
+    modified_list = []
+
+    if dpg.get_value(searcher) == "*":
+        modified_list.extend(iter(search_list))
+
+    if dpg.get_value(searcher).lower():
+        modified_list.extend(item for item in search_list if dpg.get_value(searcher).lower() in item.lower())
+
+    dpg.configure_item(result, items=modified_list)
 
 
 
-def convert_timeframe( tf):
+
+def convert_timeframe(tf):
     """This function is used when you need to convert a timeframe (1h, 1d, etc) into the dearpygui equivalent
 
     Args:

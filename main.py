@@ -1,14 +1,10 @@
-from audioop import add
 import json
-from operator import setitem
+import ccxt as ccxt
 import dearpygui.dearpygui as dpg
 import dearpygui.demo as demo
 
-import ccxt as ccxt
-import Exchange as api
-
-import utils.DoStuff as do
 from Chart import Chart
+import Trade as trade
 
 class Program():
 
@@ -73,6 +69,8 @@ class Program():
             height=self.primary_window_height - 75, 
             pos=[5, 25]):
 
+            # This will create a chart object with the settings, exchange name, viewport width and height. 
+            # Move to chart file to see how it works. 
             Chart(self.settings, app_data, self.primary_window_width, self.primary_window_height)
 
 
@@ -84,19 +82,27 @@ class Program():
         with dpg.window(label="Chart Settings", width=500, height=500, pos=[5, 25], on_close = lambda sender: dpg.delete_item(sender)):
             dpg.add_listbox(self.exchange_list, callback = self.add_chart, num_items=10, label="Exchange")
 
+    
+    def trade_panel(self, sender, app_data, user_data):
+        trade.push_trade_panel(sender, self.primary_window_width)
+
+
 
     def dpg_setup(self):
-        # Dearpygui setup
+        """ This function will set up the overall dearpygui framework, create a viewport, set the main window, and includes the 
+        menu bar for the overall program that appears at the top of the viewport.
+
+        """
         dpg.create_context()
         dpg.configure_app(init_file="dpg.ini")
 
         with dpg.window(label="Main Menu", tag="main", no_resize=True, no_scrollbar=True):
-        
             
             with dpg.menu_bar(tag='main-menu-bar'):
 
                 with dpg.group(horizontal=True):
                     dpg.add_menu_item(label="Settings", callback=self.chart_settings)
+                    dpg.add_menu_item(label="Trade", callback=self.trade_panel)
                 
                 with dpg.menu(label="DPG"):
                     dpg.add_menu_item(label="Debug", callback=dpg.show_debug)
@@ -115,5 +121,11 @@ class Program():
 
         dpg.destroy_context()
 
-program = Program()
-program.dpg_setup()
+
+
+
+
+
+if __name__ == "__main__":
+    program = Program()
+    program.dpg_setup()
