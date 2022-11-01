@@ -15,7 +15,11 @@ class Chart():
 
     # TODO: Add comments
 
-    def __init__(self, settings, exchange) -> None:
+    def __init__(self, settings, exchange, viewport_width, viewport_height) -> None:
+
+        self.viewport_height = viewport_height
+        self.viewport_width = viewport_width
+
         self.settings = settings
 
         self.api = getattr(ccxt, exchange)()
@@ -75,7 +79,7 @@ class Chart():
         
         self.previous_symbol = symbol
         
-        candles = data.get_candles(self.api, symbol, timeframe, "2022-10-01T00:00:00Z", f'{self.exchange}-child')
+        candles = data.get_candles(self.api, symbol, timeframe, "2022-10-01T00:00:00Z", f'{self.exchange}-child', self.viewport_width, self.viewport_height)
 
         dpg.delete_item("loading")
 
@@ -89,7 +93,7 @@ class Chart():
 
             dates, opens, closes, lows, highs, volume = do.candles_to_list(candles)
 
-            dpg.add_text(f"Exchange: {self.exchange} | Symbol: {symbol}", parent=f"{self.exchange}-child")
+            dpg.add_text(f"Symbol: {symbol}", parent=f"{self.exchange}-child")
 
             with dpg.subplots(2, 1, label="", width=-1, height=-1, link_all_x=True, row_ratios=[1.0, 0.25], parent=f"{self.exchange}-child", tag=f"chart-{symbol}"):
 
@@ -115,10 +119,6 @@ class Chart():
                         dpg.add_bar_series(dates, volume, weight=1)
                         dpg.fit_axis_data(dpg.top_container_stack())
                         dpg.fit_axis_data(xaxis_vol)
-
-
-    # TODO: FIX - add exchange -> choose chart, add exchagne -> choose chart, first exchange loses access to symbols and timeframes?
-
 
     def add_chart(self):
         with dpg.child_window(parent=self.exchange, tag=f"{self.exchange}-child"):

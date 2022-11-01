@@ -73,7 +73,7 @@ class Program():
             height=self.primary_window_height - 75, 
             pos=[5, 25]):
 
-            Chart(self.settings, app_data)
+            Chart(self.settings, app_data, self.primary_window_width, self.primary_window_height)
 
 
     def chart_settings(self):
@@ -82,7 +82,7 @@ class Program():
         # TODO: Fix on_close
 
         with dpg.window(label="Chart Settings", width=500, height=500, pos=[5, 25], on_close = lambda sender: dpg.delete_item(sender)):
-            dpg.add_listbox(self.exchange_list, callback = self.add_chart)
+            dpg.add_listbox(self.exchange_list, callback = self.add_chart, num_items=10, label="Exchange")
 
 
     def dpg_setup(self):

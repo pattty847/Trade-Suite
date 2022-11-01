@@ -45,9 +45,9 @@ def scrape_ohlcv(max_retries:int, exchange:str, symbol: str, timeframe: str, sin
     return exchange.filter_by_since_limit(all_ohlcv, since, None, key=0)
 
 
-def get_candles(exchange: str, symbol: str, timeframe: str, since: str, chart_id):
+def get_candles(exchange: str, symbol: str, timeframe: str, since: str, chart_id, viewport_width, viewport_height):
     
-    dpg.add_loading_indicator(circle_count=4, parent=chart_id, tag="loading")
+    dpg.add_loading_indicator(circle_count=4, parent=chart_id, tag="loading", pos=[viewport_width/2, viewport_height/2 - 110], radius=10.0)
 
     columns = ['date', 'open', 'high', 'low', 'close', 'volume']
     sym = symbol.replace('/', '').lower() # remove /
