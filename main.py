@@ -5,16 +5,21 @@ import dearpygui.demo as demo
 
 from Chart import Chart
 import Trade as trade
+from database import DB
+import Stats as stats
 
 class Program():
 
-    def __init__(self) -> None:
+    def __init__(self, database) -> None:
         self.primary_window_width = 2000
         self.primary_window_height = int(self.primary_window_width * 0.5625)
 
         self.settings = self.load_settings()
 
         self.exchange_list = list(self.init_exchanges(self.settings['exchanges']).keys())
+
+        self.database = database
+    
 
     def load_settings(self):
         """ This will load the settings from the file.
@@ -79,12 +84,16 @@ class Program():
         """
         # TODO: Fix on_close
 
-        with dpg.window(label="Chart Settings", width=500, height=500, pos=[5, 25], on_close = lambda sender: dpg.delete_item(sender)):
+        with dpg.window(label="Chart Settings", autosize=True, pos=[5, 25], on_close = lambda sender: dpg.delete_item(sender)):
             dpg.add_listbox(self.exchange_list, callback = self.add_chart, num_items=10, label="Exchange")
 
     
     def trade_panel(self, sender, app_data, user_data):
         trade.push_trade_panel(sender, self.primary_window_width)
+
+
+    def market_stats(self, sender, app_data, user_data):
+        stats.push_stats_panel(sender, self.primary_window_width)
 
 
 
@@ -94,22 +103,30 @@ class Program():
 
         """
         dpg.create_context()
-        dpg.configure_app(init_file="dpg.ini")
+
+        # TODO: Make sure the save configuration works. 
+        # dpg.configure_app(init_file="dpg.ini")
 
         with dpg.window(label="Main Menu", tag="main", no_resize=True, no_scrollbar=True):
             
-            with dpg.menu_bar(tag='main-menu-bar'):
+            with dpg.viewport_menu_bar(tag='main-menu-bar'):
 
+                # TODO: Add more options here
                 with dpg.group(horizontal=True):
                     dpg.add_menu_item(label="Settings", callback=self.chart_settings)
                     dpg.add_menu_item(label="Trade", callback=self.trade_panel)
+                    dpg.add_menu_item(label="Database", callback = lambda : print(self.database))
+                    dpg.add_menu_item(label="Market Stats", callback=self.market_stats)
                 
+                # TODO: Add more DPG GUI things, like stype editor, etc
                 with dpg.menu(label="DPG"):
                     dpg.add_menu_item(label="Debug", callback=dpg.show_debug)
                     dpg.add_menu_item(label="ImGui", callback=dpg.show_imgui_demo)
                     dpg.add_menu_item(label="ImPlot", callback=dpg.show_implot_demo)
                     dpg.add_menu_item(label="Demo", callback=demo.show_demo)
 
+                
+                # TODO: Add callback for the save, and make sure it works.
                 with dpg.menu(label="Save"):
                     dpg.add_menu_item(label="Save Window Configurations")
 
@@ -127,5 +144,13 @@ class Program():
 
 
 if __name__ == "__main__":
-    program = Program()
+
+    # Connect to database
+    database = DB("data\database\database.db")
+
+    # Create Program
+    program = Program(database)
+
+    # Set up dearpygui and create GUI
     program.dpg_setup()
+    

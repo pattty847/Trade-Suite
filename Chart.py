@@ -104,7 +104,7 @@ class Chart():
 
             with dpg.subplots(2, 1, label="", width=-1, height=-1, link_all_x=True, row_ratios=[1.0, 0.25], parent=f"{self.exchange}-child", tag=f"chart-{symbol}"):
 
-                with dpg.plot():
+                with dpg.plot(tag=f"candle-{symbol}"):
 
                     dpg.add_plot_legend()
 

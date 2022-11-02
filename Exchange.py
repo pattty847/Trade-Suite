@@ -84,3 +84,8 @@ def get_candles(exchange: str, symbol: str, timeframe: str, since: str, chart_id
 
     # Return all the candles
     return new_ohlcv
+
+
+# TODO: Create function that scans for spreads between assets
+
+# TODO: Create function that pulls orders from each exchange if they have that option. 
