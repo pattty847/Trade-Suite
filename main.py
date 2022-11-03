@@ -3,6 +3,7 @@ import ccxt as ccxt
 import dearpygui.dearpygui as dpg
 import dearpygui.demo as demo
 
+import utils.DoStuff as do
 from Chart import Chart
 import Trade as trade
 from database import DB
@@ -59,7 +60,7 @@ class Program():
         dpg.delete_item(f"timeframe-{item}")
 
 
-    def add_chart(self, sender, app_data, user_data):
+    def create_chart(self, sender, app_data, user_data):
         """ This will be called when you select an exchange from the Chart Settings window
 
         Args:
@@ -79,20 +80,23 @@ class Program():
             Chart(self.settings, app_data, self.primary_window_width, self.primary_window_height)
 
 
-    def chart_settings(self):
+    def chart_settings_panel(self):
         """This is the window for the settings
         """
         # TODO: Fix on_close
 
         with dpg.window(label="Chart Settings", autosize=True, pos=[5, 25], on_close = lambda sender: dpg.delete_item(sender)):
-            dpg.add_listbox(self.exchange_list, callback = self.add_chart, num_items=10, label="Exchange")
+            dpg.add_input_text(tag=f"exchange-searcher", hint="Search",
+                                            callback=lambda sender, data: do.searcher(f"exchange-searcher", 
+                                            f"exchange-list", self.exchange_list))
+            dpg.add_listbox(self.exchange_list, callback = self.create_chart, num_items=10, label="Exchange", tag="exchange-list")
 
     
     def trade_panel(self, sender, app_data, user_data):
         trade.push_trade_panel(sender, self.primary_window_width)
 
 
-    def market_stats(self, sender, app_data, user_data):
+    def market_stats_panel(self, sender, app_data, user_data):
         stats.push_stats_panel(sender, self.primary_window_width)
 
 
@@ -113,10 +117,10 @@ class Program():
 
                 # TODO: Add more options here
                 with dpg.group(horizontal=True):
-                    dpg.add_menu_item(label="Settings", callback=self.chart_settings)
+                    dpg.add_menu_item(label="Settings", callback=self.chart_settings_panel)
                     dpg.add_menu_item(label="Trade", callback=self.trade_panel)
                     dpg.add_menu_item(label="Database", callback = lambda : print(self.database))
-                    dpg.add_menu_item(label="Market Stats", callback=self.market_stats)
+                    dpg.add_menu_item(label="Market Stats", callback=self.market_stats_panel)
                 
                 # TODO: Add more DPG GUI things, like stype editor, etc
                 with dpg.menu(label="DPG"):
@@ -147,6 +151,7 @@ if __name__ == "__main__":
 
     # Connect to database
     database = DB("data\database\database.db")
+    database.create_candlestick_table()
 
     # Create Program
     program = Program(database)

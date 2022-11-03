@@ -15,7 +15,7 @@ class DB():
             db_file (str): This is where the database will saved.
         """
 
-        print("Attempting to connect to database.")
+        print("Connecting to database...")
 
         conn = None
         try:
@@ -30,3 +30,30 @@ class DB():
             print(e)
 
         return conn
+
+
+    def create_table(self, table):
+        """ This will create the tables associated with storing exchange data.
+        """
+        
+        try: 
+            c = self.connection.cursor()
+            c.execute(table)
+        except Error as e:
+            print(e)
+
+    
+    def create_candlestick_table(self):
+        table = """
+            CREATE TABLE candlestick (
+                “id” INTEGER PRIMARY KEY AUTOINCREMENT,
+                “timestamp” DATETIME NOT NULL,
+                “open” DECIMAL(12, 6) NOT NULL,
+                “high” DECIMAL(12, 6) NOT NULL,
+                “low” DECIMAL(12, 6) NOT NULL,
+                “close” DECIMAL(12, 6) NOT NULL,
+                “volume” DECIMAL(12, 6) NOT NULL
+                );
+        """
+
+        self.create_table(table)

@@ -4,29 +4,31 @@ import pandas_ta as pta
 import numpy as np
 import dearpygui.dearpygui as dpg
 
+from statsmodels.tsa.stattools import coint, adfuller
+
 def update_settings(settings, update):
 
     settings.update(update)
     with open("settings.json", "w") as jsonFile:
         json.dump(settings, jsonFile)
 
-def get_time_in_past( days, month, year):
-        """This function will be used to get a timestamp from days, month, years ago. 
+def get_time_in_past(days, month, year):
+    """This function will be used to get a timestamp from days, month, years ago. 
 
-        Args:
-            days (_type_): _description_
-            month (_type_): _description_
-            year (_type_): _description_
+    Args:
+        days (int): days ago
+        month (int): months ago
+        year (int): years ago
 
-        Returns:
-            _type_: _description_
-        """
-        import datetime
-        year_ = str(year)
-        y = int(f'20{year_[1:]}') # can't figure it out this will have to do until 2100 or I figure it out
-        x = datetime.datetime(y, month, days)
-        y2 = x.strftime("%Y-%m-%dT%H:%M:%S")
-        return f"{y2}Z"
+    Returns:
+        datetime in string format: %Y-%m-%dT%H:%M:%S - of time in past
+    """
+    import datetime
+    year_ = str(year)
+    y = int(f'20{year_[1:]}') # can't figure it out this will have to do until 2100 or I figure it out
+    x = datetime.datetime(y, month, days)
+    y2 = x.strftime("%Y-%m-%dT%H:%M:%S")
+    return f"{y2}Z"
 
 
 def zscore(series: pd.Series):
@@ -91,7 +93,13 @@ def _add_config_options(item, columns, *names, **kwargs):
 
 
 def searcher(searcher, result, search_list):
+    """ This function is used to search a listbox based on a list.
 
+    Args:
+        searcher (dpg input item): this is the tag of the input box the user types into
+        result (dpg listbox/combo box (maybe?)): this is the listbox tag 
+        search_list (list): list of items you want to search
+    """
     modified_list = []
 
     if dpg.get_value(searcher) == "*":
@@ -103,6 +111,65 @@ def searcher(searcher, result, search_list):
     dpg.configure_item(result, items=modified_list)
 
 
+def _help(message):
+    """ This function can be used to add an optional help popup that informs the user of something based on message.
+
+    Args:
+        message (_type_): _description_
+    """
+    last_item = dpg.last_item()
+    group = dpg.add_group(horizontal=True)
+    dpg.move_item(last_item, parent=group)
+    dpg.capture_next_item(lambda s: dpg.move_item(s, parent=group))
+    t = dpg.add_text("(?)", color=[0, 255, 0])
+    with dpg.tooltip(t):
+        dpg.add_text(message)
+
+
+def sort_callback(sender, sort_specs):
+    # TODO: Fix this function.
+    """ This function will be called to sort a table's columns.
+
+    Args:
+        sender (_type_): _description_
+        sort_specs (_type_): _description_
+
+    Returns:
+        _type_: _description_
+    """
+
+    # sort_specs scenarios:
+    #   1. no sorting -> sort_specs == None
+    #   2. single sorting -> sort_specs == [[column_id, direction]]
+    #   3. multi sorting -> sort_specs == [[column_id, direction], [column_id, direction], ...]
+    #
+    # notes:
+    #   1. direction is ascending if == 1
+    #   2. direction is ascending if == -1
+
+    # no sorting case
+    if sort_specs is None: return
+
+    rows = dpg.get_item_children(sender, 1)
+
+    # create a list that can be sorted based on first cell
+    # value, keeping track of row and value used to sort
+    sortable_list = []
+    for row in rows:
+        first_cell = dpg.get_item_children(row, 1)[0]
+        sortable_list.append([row, dpg.get_value(first_cell)])
+
+    def _sorter(e):
+        return e[1]
+
+    sortable_list.sort(key=_sorter, reverse=sort_specs[0][1] < 0)
+
+    # create list of just sorted row ids
+    new_order = []
+    for pair in sortable_list:
+        new_order.append(pair[0])
+
+    dpg.reorder_items(sender, 1, new_order)
 
 
 def convert_timeframe(tf):

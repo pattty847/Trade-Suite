@@ -110,9 +110,17 @@ class Chart():
 
                     xaxis_candles = dpg.add_plot_axis(dpg.mvXAxis, time=True)
 
+                    # How to add plot annotations to plot
+                    # dpg.add_plot_annotation(label="BL", default_value=(dates[-1], closes[-1]), offset=(-15, 15), color=[255, 255, 0, 255])
+                    # dpg.add_plot_annotation(label="BR", default_value=(0.75, 0.25), offset=(15, 15), color=[255, 255, 0, 255])
+                    # dpg.add_plot_annotation(label="TR not clampled", default_value=(0.75, 0.75), offset=(-15, -15), color=[255, 255, 0, 255], clamped=False)
+                    # dpg.add_plot_annotation(label="TL", default_value=(0.25, 0.75), offset=(-15, -15), color=[255, 255, 0, 255])
+                    # dpg.add_plot_annotation(label="Center", default_value=(0.5, 0.5), color=[255, 255, 0, 255])
+
                     with dpg.plot_axis(dpg.mvYAxis, label="USD"):
 
-                        dpg.add_candle_series(dates, opens, closes, lows, highs, time_unit=do.convert_timeframe(self.settings['last_timeframe']))
+                        dpg.add_candle_series(dates, opens, closes, lows, highs, time_unit=do.convert_timeframe(timeframe))
+                        # dpg.draw_circle(center=(500, 500), radius=5.0, label="test")
                         dpg.fit_axis_data(dpg.top_container_stack())
                         dpg.fit_axis_data(xaxis_candles)
                         
@@ -133,6 +141,9 @@ class Chart():
             add = dpg.add_text("Add Ticker")
 
             with dpg.popup(add, mousebutton=dpg.mvMouseButton_Left):
+                dpg.add_input_text(tag=f"symbols-searcher-{self.exchange}", hint="Search",
+                                            callback=lambda sender, data: do.searcher(f"symbols-searcher-{self.exchange}", 
+                                            f"symbol-{self.exchange}", self.symbols))
 
                 dpg.add_listbox(self.symbols, label="Symbol", tag=f"symbol-{self.exchange}", num_items=10)
 

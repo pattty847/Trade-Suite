@@ -11,7 +11,7 @@ def retry_fetch_ohlcv(max_retries:int, exchange:str, symbol: str, timeframe: str
             ohlcv = exchange.fetch_ohlcv(symbol, timeframe, since, limit)
         except ccxt.ExchangeError as e:
             print(e)
-        # print('Fetched', len(ohlcv), symbol, 'candles from', self.api.iso8601 (ohlcv[0][0]), 'to', self.api.iso8601 (ohlcv[-1][0]))
+        # print('Fetched', len(ohlcv), symbol, 'candles from', exchange.iso8601 (ohlcv[0][0]), 'to', exchange.iso8601 (ohlcv[-1][0]))
         return ohlcv
     except Exception:
         if num_retries > max_retries:
@@ -89,3 +89,93 @@ def get_candles(exchange: str, symbol: str, timeframe: str, since: str, chart_id
 # TODO: Create function that scans for spreads between assets
 
 # TODO: Create function that pulls orders from each exchange if they have that option. 
+
+
+def get_orders(exchange: str, symbol: str, since: str):
+    market = exchange.market(symbol)
+    one_hour = 3600 * 1000
+    since = exchange.parse8601(since)
+    now = exchange.milliseconds()
+    end = exchange.parse8601(exchange.ymd(now) + 'T00:00:00')
+    previous_trade_id = None
+    filename = "CSV\\" + exchange.id + '\\' + market['id'].replace('/', '').lower() + '-orders.csv'
+    all_orders = []
+    while since < end:
+        try:
+            trades = exchange.fetch_trades(symbol, since)
+            print(exchange.iso8601(since), len(trades), 'trades')
+            if len(trades):
+                last_trade = trades[-1]
+                if previous_trade_id != last_trade['id']:
+                    since = last_trade['timestamp']
+                    previous_trade_id = last_trade['id']
+                    for trade in trades:
+                        all_orders.append({
+                            'timestamp': trade['timestamp'],
+                            'size': trade['amount'],
+                            'price': trade['price'],
+                            'side': trade['side'],
+                        })
+                else:
+                    since += one_hour
+            else:
+                since += one_hour
+        except ccxt.NetworkError as e:
+            print(type(e).__name__, str(e))
+            exchange.sleep(60000)
+    df = pd.DataFrame(all_orders, columns=["timestamp", "size", "price", "side"])
+    return df
+
+# bin = getattr(ccxt, "binance")()
+# bin.load_markets()
+# print(get_orders(bin, "BTC/USDT", "2022-11-02T21:00:00Z"))
+
+
+def get_candles_from_csv(self, exchange: str, symbol: str, timeframe: str):
+    columns=['date', 'open', 'high', 'low', 'close', 'volume']
+    sym = symbol.replace('/', '').lower()
+    file = f'CSV\\{str(self.exchange).replace(" ", "").lower()}-{sym}-{timeframe}.csv'
+    df = pd.read_csv(file)
+    df.columns = columns
+    return df
+
+
+def get_multi_candles(self, exchange: str, tickers:list, timeframe:str, since:str):
+    """This function will return a dictionary of dataframe object(s) where the key is the ticker. It will loop through the tickers passed to it
+        and call the get_candles() function, storing or updating the data in the CSV folder. 
+
+    Args:
+        tickers (list): list of ticker pairs to fetch
+        timeframe (str): a single timeframe
+        since (str): timestamp of when to start fetching candles from
+
+    Returns:
+        dict: a returned dictionary containing the candlestick dataframe accessable by the ticker as a key
+    """
+    candles = {}
+    if len(tickers) == 1:
+        df = self.get_candles(tickers[0])
+        return df
+    for ticker in tickers:
+        df = self.get_candles(ticker, timeframe, since)
+        candles[ticker] = df
+    return candles
+
+
+def get_matrix_of_closes(self, exchange: str, tickers:list, timeframe:str, since:str):
+    """This will generate a matrix of ticker closes from since to now by a certain timeframe. 
+
+    Args:
+        tickers (list): list of ticker pairs to fetch
+        timeframe (str): a single timeframe
+        since (str): timestamp of when to start fetching candles from
+
+    Returns:
+        DataFrame: it will return a dataframe of these closes 
+    """
+    ohlcv = self.get_multi_candles(tickers, timeframe, since)
+    df = pd.DataFrame()
+    for ticker in ohlcv.keys():
+        df[ticker] = ohlcv[ticker]['close']
+    # df.index = ohlcv[df.columns.tolist()[0]]['date']
+    return df
