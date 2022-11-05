@@ -1,5 +1,6 @@
 import json
 import ccxt as ccxt
+import ccxt.async_support as ccas
 import dearpygui.dearpygui as dpg
 import dearpygui.demo as demo
 

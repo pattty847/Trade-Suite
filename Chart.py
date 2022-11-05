@@ -7,9 +7,13 @@ import dearpygui.demo as demo
 import Exchange as data
 import utils.DoStuff as do
 import ccxt as ccxt
+import ccxt.async_support as ccas
+from asyncio import run, gather
 import pandas as pd
 import os
-import csv
+import Strategies as strat
+
+
 
 class Chart():
 
@@ -77,6 +81,16 @@ class Chart():
 
 
     
+    def add_market_opens_closes(self, sender, app_data, user_data):
+        symbol = dpg.get_value(f'symbol-{self.exchange}').strip()
+        
+        for time in strat.get_nyse_market_hours("open"):
+            dpg.add_plot_annotation(label="NY Open", default_value=(time, 0), color=[116, 209, 88, 255], parent=f"candle-{symbol}")
+        for time in strat.get_nyse_market_hours("close"):
+            dpg.add_plot_annotation(label="NY Close", default_value=(time, 0), color=[219, 148, 103, 255], parent=f"candle-{symbol}")
+
+
+    
     def push_chart(self, sender, app_data, user_data):
 
         dpg.delete_item(f"chart-{self.previous_symbol}")
@@ -127,13 +141,17 @@ class Chart():
                 with dpg.plot():
 
                     dpg.add_plot_legend()
-                    xaxis_vol = dpg.add_plot_axis(dpg.mvXAxis, label="Date", time=True)
+                    xaxis_vol = dpg.add_plot_axis(dpg.mvXAxis, label="UTC", time=True)
 
                     with dpg.plot_axis(dpg.mvYAxis, label="USD"):
 
                         dpg.add_bar_series(dates, volume, weight=1)
                         dpg.fit_axis_data(dpg.top_container_stack())
                         dpg.fit_axis_data(xaxis_vol)
+
+                
+            with dpg.menu(label="Indicators", parent="main-menu-bar"):
+                dpg.add_menu_item(label="NYSE Market Opens/Closes", callback=self.add_market_opens_closes)
 
     def add_chart(self):
         with dpg.child_window(parent=self.exchange, tag=f"{self.exchange}-child"):

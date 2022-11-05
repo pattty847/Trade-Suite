@@ -1,5 +1,7 @@
 import os
 import ccxt as ccxt
+import ccxt.async_support as ccas
+import asyncio
 import pandas as pd
 import dearpygui.dearpygui as dpg
 
@@ -141,7 +143,7 @@ def get_candles_from_csv(self, exchange: str, symbol: str, timeframe: str):
 
 
 def get_multi_candles(self, exchange: str, tickers:list, timeframe:str, since:str):
-    """This function will return a dictionary of dataframe object(s) where the key is the ticker. It will loop through the tickers passed to it
+    """ This function will return a dictionary of dataframe object(s) where the key is the ticker. It will loop through the tickers passed to it
         and call the get_candles() function, storing or updating the data in the CSV folder. 
 
     Args:
