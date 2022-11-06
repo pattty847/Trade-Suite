@@ -1,4 +1,5 @@
 import json
+import time
 import ccxt as ccxt
 import ccxt.async_support as ccas
 import dearpygui.dearpygui as dpg
@@ -44,7 +45,7 @@ class Program():
             dict: dictionary of ccxt exchanges accessable by their name
         """
         ccxt_list = {}
-        for exchange in exchanges:
+        for exchange in ["ftx"]: # TODO: change back to exchanges for all exchanges
             api = getattr(ccxt, exchange)()
             ccxt_list[api.id] = api
         return ccxt_list
@@ -101,6 +102,12 @@ class Program():
         stats.push_stats_panel(sender, self.primary_window_width)
 
 
+    def test_move(self):
+        for i in range(100):
+            dpg.configure_item("test-text", pos=(i, 5))
+            time.sleep(1)
+
+
 
     def dpg_setup(self):
         """ This function will set up the overall dearpygui framework, create a viewport, set the main window, and includes the 
@@ -122,6 +129,7 @@ class Program():
                     dpg.add_menu_item(label="Trade", callback=self.trade_panel)
                     dpg.add_menu_item(label="Database", callback = lambda : print(self.database))
                     dpg.add_menu_item(label="Market Stats", callback=self.market_stats_panel)
+                    dpg.add_menu_item(label="Test Move", callback=self.test_move)
                 
                 # TODO: Add more DPG GUI things, like stype editor, etc
                 with dpg.menu(label="DPG"):
@@ -142,10 +150,6 @@ class Program():
         dpg.start_dearpygui()
 
         dpg.destroy_context()
-
-
-
-
 
 
 if __name__ == "__main__":

@@ -1,15 +1,9 @@
-from asyncore import read
-import json
-from pydoc import synopsis
-from time import time
+import asyncio
+import Exchanges.FTX as FTX
 import dearpygui.dearpygui as dpg
-import dearpygui.demo as demo
 import Exchange as data
 import utils.DoStuff as do
 import ccxt as ccxt
-import ccxt.async_support as ccas
-from asyncio import run, gather
-import pandas as pd
 import os
 import Strategies as strat
 
@@ -97,57 +91,48 @@ class Chart():
 
         symbol = dpg.get_value(f'symbol-{self.exchange}').strip()
         timeframe = dpg.get_value(f'timeframe-{self.exchange}').strip()
-        
+
         self.previous_symbol = symbol
+
+        candles = asyncio.run(FTX.fetch_candles(symbol, FTX.timeframes[timeframe], f'{self.exchange}-child', self.viewport_width, self.viewport_height))
+        if candles == None:
+            print("No symbol for this exchange.")
+            return
         
-        candles = data.get_candles(self.api, symbol, timeframe, "2022-10-25T00:00:00Z", f'{self.exchange}-child', self.viewport_width, self.viewport_height)
+        # candles = data.get_candles(self.api, symbol, timeframe, "2022-10-25T00:00:00Z", f'{self.exchange}-child', self.viewport_width, self.viewport_height)
 
         dpg.delete_item("loading")
 
-        print(candles)
-        if not len(candles):
-            print("No symbol for that exchange.")
-        else:
+        # TODO: Figure out how to make the close live
+        # TODO: Timeframe
 
+        # time, opens, closes, lows, highs, volume = do.candles_to_list(candles)
 
-            # TODO: Figure out how to make the close live
+        with dpg.subplots(2, 1, label="", width=-1, height=-1, link_all_x=True, row_ratios=[1.0, 0.25], parent=f"{self.exchange.upper()}-child", tag=f"chart-{symbol}"):
 
-            dates, opens, closes, lows, highs, volume = do.candles_to_list(candles)
+            with dpg.plot(tag=f"candle-{symbol}", label=f"Exchange: {self.exchange} | Symbol: {symbol} | Timeframe: {timeframe}"):
 
-            dpg.add_text(f"Symbol: {symbol}", parent=f"{self.exchange}-child")
+                dpg.add_plot_legend()
 
-            with dpg.subplots(2, 1, label="", width=-1, height=-1, link_all_x=True, row_ratios=[1.0, 0.25], parent=f"{self.exchange}-child", tag=f"chart-{symbol}"):
+                xaxis_candles = dpg.add_plot_axis(dpg.mvXAxis, time=True)
 
-                with dpg.plot(tag=f"candle-{symbol}"):
+                with dpg.plot_axis(dpg.mvYAxis, label="USD"):
 
-                    dpg.add_plot_legend()
+                    dpg.add_candle_series(candles['time'], candles['open'], candles['close'], candles['low'], candles['high'], time_unit=do.convert_timeframe(timeframe))
+                    # dpg.draw_circle(center=(500, 500), radius=5.0, label="test")
+                    dpg.fit_axis_data(dpg.top_container_stack())
+                    dpg.fit_axis_data(xaxis_candles)
+                    
+            with dpg.plot():
 
-                    xaxis_candles = dpg.add_plot_axis(dpg.mvXAxis, time=True)
+                dpg.add_plot_legend()
+                xaxis_vol = dpg.add_plot_axis(dpg.mvXAxis, label="UTC", time=True)
 
-                    # How to add plot annotations to plot
-                    # dpg.add_plot_annotation(label="BL", default_value=(dates[-1], closes[-1]), offset=(-15, 15), color=[255, 255, 0, 255])
-                    # dpg.add_plot_annotation(label="BR", default_value=(0.75, 0.25), offset=(15, 15), color=[255, 255, 0, 255])
-                    # dpg.add_plot_annotation(label="TR not clampled", default_value=(0.75, 0.75), offset=(-15, -15), color=[255, 255, 0, 255], clamped=False)
-                    # dpg.add_plot_annotation(label="TL", default_value=(0.25, 0.75), offset=(-15, -15), color=[255, 255, 0, 255])
-                    # dpg.add_plot_annotation(label="Center", default_value=(0.5, 0.5), color=[255, 255, 0, 255])
+                with dpg.plot_axis(dpg.mvYAxis, label="USD"):
 
-                    with dpg.plot_axis(dpg.mvYAxis, label="USD"):
-
-                        dpg.add_candle_series(dates, opens, closes, lows, highs, time_unit=do.convert_timeframe(timeframe))
-                        # dpg.draw_circle(center=(500, 500), radius=5.0, label="test")
-                        dpg.fit_axis_data(dpg.top_container_stack())
-                        dpg.fit_axis_data(xaxis_candles)
-                        
-                with dpg.plot():
-
-                    dpg.add_plot_legend()
-                    xaxis_vol = dpg.add_plot_axis(dpg.mvXAxis, label="UTC", time=True)
-
-                    with dpg.plot_axis(dpg.mvYAxis, label="USD"):
-
-                        dpg.add_bar_series(dates, volume, weight=1)
-                        dpg.fit_axis_data(dpg.top_container_stack())
-                        dpg.fit_axis_data(xaxis_vol)
+                    dpg.add_bar_series(candles['time'], candles['volume'], weight=1)
+                    dpg.fit_axis_data(dpg.top_container_stack())
+                    dpg.fit_axis_data(xaxis_vol)
 
                 
             with dpg.menu(label="Indicators", parent="main-menu-bar"):
