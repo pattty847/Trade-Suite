@@ -6,6 +6,8 @@
 
 **Go to **main.py** and run python script.**
 
+As of now, I have started to re-write the Exchagne.py file without using **ccxt**. Maybe, I can keep it available and slowly migrate the exchanges to their new files. Each exchange will be implimented directly to the exchange with asyncio requests and websockets.
+
 
 
 ### First Iteration Photo: 10/30/2022
