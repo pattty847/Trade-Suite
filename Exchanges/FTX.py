@@ -10,7 +10,7 @@ nest_asyncio.apply()
 
 
 REST_ENDPOINT = "https://ftx.com/api"
-WEBSOCKET_ENDPOINT = "'wss://ftx.com/ws/'"
+WEBSOCKET_ENDPOINT = "wss://ftx.com/ws/"
 timeframes = {
     '15s': '15',
     '1m': '60',
@@ -90,13 +90,10 @@ async def fetch_candles(market, resolution, chart_id, viewport_width, viewport_h
                 print("failed to retieve market data...")
 
 
-from pprint import pprint
-# data = asyncio.run(fetch_candles("BTC-PERP", 300))
-# pprint(data)
-
 
 async def fetch_all_markets():
-    """ Returns all markets from ftx.
+    """ Returns all markets from ftx (FUTURES and SPOT).
+    market['type'] = "future" or "spot
 
     Returns:
         list: List of all markets from ftx.
@@ -115,7 +112,7 @@ async def fetch_all_markets():
                 print("failed to retieve market data...")
 
 
-async def fetch_all_futures():
+async def fetch_all_futures_markets():
     url = f"{REST_ENDPOINT}/futures"
     async with aiohttp.ClientSession() as session:
         async with session.get(url) as response:
@@ -134,7 +131,7 @@ async def fetch_all_futures():
                 print("failed to retieve market data...")
 
 
-async def fetch_order_book(market):
+async def fetch_market_order_book(market):
     """ Returns a certain markets orderbook.
 
     Args:
@@ -151,7 +148,7 @@ async def fetch_order_book(market):
             return results
 
 
-async def subscribe_to_ticker(market):
+async def subscribe_to_market(market):
     """ Starts a websocket connection which subscribes to a particular market on FTX.
 
     Args:
@@ -167,8 +164,10 @@ async def subscribe_to_ticker(market):
             websocket.send(json.dumps({"op": "unsubscribe", "channel": "ticker", "market": market}))
             print(await websocket.recv())
 
+# asyncio.run(subscribe_to_market("BTC-PERP"))
 
-async def subscribe_to_market():
+
+async def subscribe_to_all_markets():
     """ Starts a websocket connection which subscribes to all market data on FTX.
     """
     params = json.dumps({"op": "subscribe", "channel": "markets"})

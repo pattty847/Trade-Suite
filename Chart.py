@@ -1,7 +1,8 @@
 import asyncio
+import datetime
+import pytz
 import Exchanges.FTX as FTX
 import dearpygui.dearpygui as dpg
-import Exchange as data
 import utils.DoStuff as do
 import ccxt as ccxt
 import os
@@ -19,6 +20,8 @@ class Chart():
         self.viewport_width = viewport_width
 
         self.settings = settings
+
+        self.fetch_range = None
 
         self.api = getattr(ccxt, exchange)()
         self.exchange = exchange # Exchange name
@@ -73,9 +76,10 @@ class Chart():
             with open(f"timeframes.csv") as f:
                 return f.readlines()
 
-
     
-    def add_market_opens_closes(self, sender, app_data, user_data):
+    def add_market_opens_closes(self):
+        """ This function will add NYSE market opens and closes to the chart.
+        """
         symbol = dpg.get_value(f'symbol-{self.exchange}').strip()
         
         for time in strat.get_nyse_market_hours("open"):
@@ -83,10 +87,14 @@ class Chart():
         for time in strat.get_nyse_market_hours("close"):
             dpg.add_plot_annotation(label="NY Close", default_value=(time, 0), color=[219, 148, 103, 255], parent=f"candle-{symbol}")
 
+    
+
+    # def start_websocket(self, sender, app_data, user_data):
+    #     thread = Threading
+
 
     
     def push_chart(self, sender, app_data, user_data):
-
         dpg.delete_item(f"chart-{self.previous_symbol}")
 
         symbol = dpg.get_value(f'symbol-{self.exchange}').strip()
@@ -94,23 +102,35 @@ class Chart():
 
         self.previous_symbol = symbol
 
-        candles = asyncio.run(FTX.fetch_candles(symbol, FTX.timeframes[timeframe], f'{self.exchange}-child', self.viewport_width, self.viewport_height))
+    
+
+        candles = asyncio.run(FTX.fetch_candles(symbol, 
+                              FTX.timeframes[timeframe], 
+                              f'{self.exchange}-child', 
+                              self.viewport_width, 
+                              self.viewport_height,
+                              start_time=datetime.datetime.now(tz=pytz.utc).timestamp() * 1000))
+        
+        
         if candles == None:
             print("No symbol for this exchange.")
+            dpg.delete_item("loading")
             return
         
-        # candles = data.get_candles(self.api, symbol, timeframe, "2022-10-25T00:00:00Z", f'{self.exchange}-child', self.viewport_width, self.viewport_height)
-
         dpg.delete_item("loading")
 
         # TODO: Figure out how to make the close live
-        # TODO: Timeframe
 
-        # time, opens, closes, lows, highs, volume = do.candles_to_list(candles)
 
-        with dpg.subplots(2, 1, label="", width=-1, height=-1, link_all_x=True, row_ratios=[1.0, 0.25], parent=f"{self.exchange.upper()}-child", tag=f"chart-{symbol}"):
+        # Candlestick plot and volume plot
+        with dpg.subplots(2, 1, label="", width=-1, height=-1, 
+                          link_all_x=True, 
+                          row_ratios=[1.0, 0.25], 
+                          parent=f"{self.exchange}-child", 
+                          tag=f"chart-{symbol}"):
 
-            with dpg.plot(tag=f"candle-{symbol}", label=f"Exchange: {self.exchange} | Symbol: {symbol} | Timeframe: {timeframe}"):
+            # Candlestick plot
+            with dpg.plot(tag=f"candle-{symbol}", label=f"Exchange: {self.exchange.upper()} | Symbol: {symbol} | Timeframe: {timeframe}"):
 
                 dpg.add_plot_legend()
 
@@ -123,10 +143,11 @@ class Chart():
                     dpg.fit_axis_data(dpg.top_container_stack())
                     dpg.fit_axis_data(xaxis_candles)
                     
+            # Volume plot
             with dpg.plot():
 
                 dpg.add_plot_legend()
-                xaxis_vol = dpg.add_plot_axis(dpg.mvXAxis, label="UTC", time=True)
+                xaxis_vol = dpg.add_plot_axis(dpg.mvXAxis, label="Time [UTC]", time=True)
 
                 with dpg.plot_axis(dpg.mvYAxis, label="USD"):
 
@@ -134,22 +155,28 @@ class Chart():
                     dpg.fit_axis_data(dpg.top_container_stack())
                     dpg.fit_axis_data(xaxis_vol)
 
-                
-            with dpg.menu(label="Indicators", parent="main-menu-bar"):
-                dpg.add_menu_item(label="NYSE Market Opens/Closes", callback=self.add_market_opens_closes)
+            # Indicators menu
+            with dpg.menu(label="Chart Settings", parent="main-menu-bar"):
+                dpg.add_menu_item(label="[Add] NYSE Opens & Closes", callback=self.add_market_opens_closes)
+
+
+
 
     def add_chart(self):
         with dpg.child_window(parent=self.exchange, tag=f"{self.exchange}-child"):
 
-            add = dpg.add_text("Add Ticker")
+            with dpg.group(horizontal=True):
+                add = dpg.add_button(label="Add Ticker")
+                dpg.add_button(label="BTC/USDT")
+                dpg.add_button(label="ETH/USDT")
 
-            with dpg.popup(add, mousebutton=dpg.mvMouseButton_Left):
-                dpg.add_input_text(tag=f"symbols-searcher-{self.exchange}", hint="Search",
-                                            callback=lambda sender, data: do.searcher(f"symbols-searcher-{self.exchange}", 
-                                            f"symbol-{self.exchange}", self.symbols))
+                with dpg.popup(add, mousebutton=dpg.mvMouseButton_Left):
+                    dpg.add_input_text(tag=f"symbols-searcher-{self.exchange}", hint="Search",
+                                                callback=lambda sender, data: do.searcher(f"symbols-searcher-{self.exchange}", 
+                                                f"symbol-{self.exchange}", self.symbols))
 
-                dpg.add_listbox(self.symbols, label="Symbol", tag=f"symbol-{self.exchange}", num_items=10)
+                    dpg.add_listbox(self.symbols, label="Symbol", tag=f"symbol-{self.exchange}", num_items=10)
 
-                dpg.add_listbox(self.timeframes, label="Timeframe", tag=f"timeframe-{self.exchange}", num_items=10)
+                    dpg.add_listbox(self.timeframes, label="Timeframe", tag=f"timeframe-{self.exchange}", num_items=10)
 
-                dpg.add_button(label="Go", callback = self.push_chart)
+                    dpg.add_button(label="Go", callback = self.push_chart)

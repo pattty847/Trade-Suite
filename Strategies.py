@@ -17,6 +17,10 @@ def crossing(x, y):
     return crossed
 
 
+def wt():
+    pass
+
+
 def wavetrend(dataframe):
     """ This function takes a dataframe of dates, OHLCV and returns a tuple of buys and sells contained in lists as ordered pairs. 
     Mostly going to be used for annotating charts.

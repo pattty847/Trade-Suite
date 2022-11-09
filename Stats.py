@@ -1,6 +1,7 @@
 import dearpygui.dearpygui as dpg
 import utils.DoStuff as do
 import pandas as pd
+import os
 
 
 def pull_stats():
@@ -8,10 +9,11 @@ def pull_stats():
     stats = pd.read_html(URL)[0][["Coin", "Price", "Chg 24H", "Vol 24H", "Open Interest", "OI Chg 24H", "OI Share", "OI / VOL24H", "FR AVG", "PFR AVG", "Liqs. 24H"]]
     
     try:
-        with open("CSV\\previous_stats.csv", "r"):
-            previous_stats = pd.read_csv("CSV\\previous_stats.csv")
+        with open("data\\previous_stats.csv", "r"):
+            previous_stats = pd.read_csv("data\\previous_stats.csv")
     except FileNotFoundError as e:
-        stats.to_csv(f"previous_stats.csv", index=False)
+        os.makedirs("data")
+        stats.to_csv(f"data\\previous_stats.csv", index=False)
         previous_stats = None
     
     return (stats, previous_stats)

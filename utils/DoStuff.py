@@ -7,7 +7,6 @@ import dearpygui.dearpygui as dpg
 from statsmodels.tsa.stattools import coint, adfuller
 
 def update_settings(settings, update):
-
     settings.update(update)
     with open("settings.json", "w") as jsonFile:
         json.dump(settings, jsonFile)
@@ -218,7 +217,7 @@ def find_cointegrated_pairs( data: pd.DataFrame, pvalue_filter: float):
 
     Args:
         data (pd.DataFrame): This is a matrix of closes
-        pvalue_filter (float): This is the value you want to filter pvalues which are less than
+        pvalue_filter (float): Pvalues less than pvalue_filter
 
     Returns:
         _type_: tuple containing the cointegration scores, pvalues, and pairs thare are under a certain pvalue.
@@ -243,20 +242,20 @@ def find_cointegrated_pairs( data: pd.DataFrame, pvalue_filter: float):
 
 
 
-def first_time_back(self):
+def first_time_back():
     """TODO: First Time Back (FTB) to the Supply or Demand zone
     """
     pass
 
 
 
-def hex_to_RGB( hex):
+def hex_to_RGB(hex):
     ''' "#FFFFFF" -> [255,255,255] '''
     # Pass 16 to the integer function for change of base
     return [int(hex[i:i+2], 16) for i in range(1,6,2)]
 
 
-def RGB_to_hex( RGB):
+def RGB_to_hex(RGB):
     ''' [255,255,255] -> "#FFFFFF" '''
     # Components need to be integers for hex to make sense
     RGB = [int(x) for x in RGB]
