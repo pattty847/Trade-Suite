@@ -1,8 +1,9 @@
 import asyncio
 import datetime
 import pytz
-import Exchanges.FTX as FTX
+import Exchanges.Binance as Binance
 import dearpygui.dearpygui as dpg
+import sys
 import utils.DoStuff as do
 import ccxt as ccxt
 import os
@@ -35,46 +36,34 @@ class Chart():
 
     
     def load_symbols(self):
-        """This function will check if symbols are stored for the exchange in /data/<exchange>, and if not it will save 
-        them to a csv file then return the symbols list. If it has them stored it will read and return.
-
-        Returns:
-            list: symbol list
+        """ This function calls for all tickers from the exchange and returns them as a list.
         """
-        file = f"data\\{self.exchange}"
-        if os.path.exists(file):
-            
-            with open(f"{file}\\symbols.csv") as f:
+        try:
+            with open(f"src\\Exchanges\\CSV\\{self.exchange}-tickers.csv", "r") as f:
                 return f.readlines()
-
-        else:
-            
-            os.makedirs(file)
-
-            symbols = list(self.api.fetch_tickers().keys())
-            
-            with open(f"{file}\\symbols.csv", "w") as f:
-                
-                for sym in symbols:
-                    f.write(sym+"\n")
-
-            return symbols
+        except FileNotFoundError as e:
+            os.makedirs("src\\Exchanges\\CSV")
+            with open(f"src\\Exchanges\\CSV\\{self.exchange}-tickers.csv", "w") as f:
+                tickers = self.api.fetch_tickers().keys()
+                new_tickers = []
+                for line in tickers:
+                    new_tickers.append(line.replace("/", ""))
+                    f.write(line.replace("/", "") + "\n")
+                return new_tickers
 
     
     def load_timeframes(self):
-        """ This will check if the exchange has the data for their timeframes and return it. If not it will used a list of 
-        most likely timeframes. 
-
-        Returns:
-            list: List of timeframes for exchange
-        """
-
-        if(self.api.has['fetchOHLCV']):
-            timeframes = list(self.api.timeframes.keys())
-            return timeframes
-        else:
-            with open(f"timeframes.csv") as f:
+        """ This will return a list of timeframes from the exchange as a list."""
+        try:
+            with open(f"src\\Exchanges\\CSV\\{self.exchange}-timeframes.csv", "r") as f:
                 return f.readlines()
+        except FileNotFoundError as e:
+            with open(f"src\\Exchanges\\CSV\\{self.exchange}-timeframes.csv", "w") as f:
+                timeframes = self.api.timeframes.keys()
+                for line in timeframes:
+                    f.write(line + "\n")
+                return list(timeframes)
+
 
     
     def add_market_opens_closes(self):
@@ -94,22 +83,25 @@ class Chart():
 
 
     
-    def push_chart(self, sender, app_data, user_data):
+    def push_chart(self, symbol_=None, timeframe_=None):
+        """ Function called to push a ticker and timeframe to the window. You can optionally call this function with a ticker and timeframe passed,
+        which will be automatically added.
+
+        Args:
+            symbol_ (str, optional): A symbol. Defaults to None.
+            timeframe_ (str, optional): A timeframe. Defaults to None.
+        """
         dpg.delete_item(f"chart-{self.previous_symbol}")
+        dpg.delete_item('settings')
 
         symbol = dpg.get_value(f'symbol-{self.exchange}').strip()
         timeframe = dpg.get_value(f'timeframe-{self.exchange}').strip()
 
         self.previous_symbol = symbol
 
-    
+        candles = asyncio.run(Binance.fetch_candles(ticker=symbol if not symbol_ else symbol_, timeframe = Binance.timeframes[timeframe] if not timeframe_ else timeframe_, chart_id = f'{self.exchange}-child', viewport_width = self.viewport_width, viewport_height = self.viewport_height))
 
-        candles = asyncio.run(FTX.fetch_candles(symbol, 
-                              FTX.timeframes[timeframe], 
-                              f'{self.exchange}-child', 
-                              self.viewport_width, 
-                              self.viewport_height,
-                              start_time=datetime.datetime.now(tz=pytz.utc).timestamp() * 1000))
+        # Create websocket by passing the ticker and @kline<timeframe>?
         
         
         if candles == None:
@@ -130,7 +122,7 @@ class Chart():
                           tag=f"chart-{symbol}"):
 
             # Candlestick plot
-            with dpg.plot(tag=f"candle-{symbol}", label=f"Exchange: {self.exchange.upper()} | Symbol: {symbol} | Timeframe: {timeframe}"):
+            with dpg.plot(tag=f"candle-{symbol}", label=f"Exchange: {self.exchange.upper()} | Symbol: {symbol if not symbol_ else symbol_} | Timeframe: {timeframe if not timeframe_ else timeframe_}"):
 
                 dpg.add_plot_legend()
 
@@ -138,7 +130,7 @@ class Chart():
 
                 with dpg.plot_axis(dpg.mvYAxis, label="USD"):
 
-                    dpg.add_candle_series(candles['time'], candles['open'], candles['close'], candles['low'], candles['high'], time_unit=do.convert_timeframe(timeframe))
+                    dpg.add_candle_series(candles['time'], candles['open'], candles['close'], candles['low'], candles['high'], time_unit=do.convert_timeframe(timeframe if not timeframe_ else timeframe))
                     # dpg.draw_circle(center=(500, 500), radius=5.0, label="test")
                     dpg.fit_axis_data(dpg.top_container_stack())
                     dpg.fit_axis_data(xaxis_candles)
@@ -151,7 +143,7 @@ class Chart():
 
                 with dpg.plot_axis(dpg.mvYAxis, label="USD"):
 
-                    dpg.add_bar_series(candles['time'], candles['volume'], weight=1)
+                    dpg.add_bar_series(candles['time'], candles['volume'])
                     dpg.fit_axis_data(dpg.top_container_stack())
                     dpg.fit_axis_data(xaxis_vol)
 
@@ -159,16 +151,17 @@ class Chart():
             with dpg.menu(label="Chart Settings", parent="main-menu-bar"):
                 dpg.add_menu_item(label="[Add] NYSE Opens & Closes", callback=self.add_market_opens_closes)
 
+        # Maybe call a new function passing the websocket, and chart tags so it can be updated?
 
 
 
     def add_chart(self):
         with dpg.child_window(parent=self.exchange, tag=f"{self.exchange}-child"):
 
-            with dpg.group(horizontal=True):
+            with dpg.group(horizontal=True, tag="favorites"):
                 add = dpg.add_button(label="Add Ticker")
-                dpg.add_button(label="BTC/USDT")
-                dpg.add_button(label="ETH/USDT")
+                dpg.add_button(label="BTC/USDT", callback= lambda: self.push_chart("BTCUSDT", "15m"))
+                dpg.add_button(label="ETH/USDT", callback= lambda: self.push_chart("ETHUSDT", "15m"))
 
                 with dpg.popup(add, mousebutton=dpg.mvMouseButton_Left):
                     dpg.add_input_text(tag=f"symbols-searcher-{self.exchange}", hint="Search",
@@ -179,4 +172,6 @@ class Chart():
 
                     dpg.add_listbox(self.timeframes, label="Timeframe", tag=f"timeframe-{self.exchange}", num_items=10)
 
-                    dpg.add_button(label="Go", callback = self.push_chart)
+                    with dpg.group(horizontal=True):
+                        dpg.add_button(label="Add to Favorites", callback=lambda: dpg.add_button(label=dpg.get_value(f"symbol-{self.exchange}"), parent="favorites", callback=lambda: self.push_chart(dpg.get_value(f"symbol-{self.exchange}"), dpg.get_value(f"timeframe-{self.exchange}"))))
+                        dpg.add_button(label="Go", callback = self.push_chart)

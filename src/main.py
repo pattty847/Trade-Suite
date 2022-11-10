@@ -29,7 +29,7 @@ class Program():
             settings = json.load(f)
         return settings
 
-    # TODO: No longer using ccxt - Maybe reimpliment exchanges that are not yet written with ccxt, but no one using this thing rn lol
+    # TODO: No longer using ccxt to fetch exchange data. All exchanges will be implimented in src/Exchanges.
     def init_exchanges(self, exchanges):
         """ This function will initialize all exchanges store in the settings file.
 
@@ -40,7 +40,7 @@ class Program():
             dict: dictionary of ccxt exchanges accessable by their name
         """
         ccxt_list = {}
-        for exchange in ["ftx"]: # TODO: change back to exchanges for all exchanges
+        for exchange in ["binance"]: # TODO: change back to exchanges for all exchanges
             api = getattr(ccxt, exchange)()
             ccxt_list[api.id] = api
         return ccxt_list
@@ -61,7 +61,7 @@ class Program():
         """ This will be called when you select an exchange from the Chart Settings window
 
         Args:
-            sender (str): sender of dpg item
+            sender (str): sender tag of dpg item
             app_data (str): exchange name
             user_data (str): user data = None
         """
@@ -82,7 +82,7 @@ class Program():
         """
         # TODO: Fix on_close
 
-        with dpg.window(label="Chart Settings", autosize=True, pos=[5, 25], on_close = lambda sender: dpg.delete_item(sender)):
+        with dpg.window(label="Chart Settings", tag='settings', autosize=True, pos=[5, 25], on_close = lambda sender: dpg.delete_item(sender)):
             dpg.add_input_text(tag=f"exchange-searcher", hint="Search",
                                             callback=lambda sender, data: do.searcher(f"exchange-searcher", 
                                             f"exchange-list", self.exchange_list))
@@ -98,7 +98,7 @@ class Program():
 
 
     def dpg_setup(self):
-        """ This function will set up the overall dearpygui framework, create a viewport, set the main window, and includes the 
+        """ This function will set up the overall dearpygui framework, create a viewport, set the main window, and includes the
         menu bar for the overall program that appears at the top of the viewport.
 
         """
@@ -118,13 +118,11 @@ class Program():
                     dpg.add_menu_item(label="Market Stats", callback=self.market_stats_panel)
                 
                 # TODO: Add more DPG GUI things, like stype editor, etc
-                with dpg.menu(label="DPG"):
-                    dpg.add_menu_item(label="Debug", callback=dpg.show_debug)
-                    dpg.add_menu_item(label="ImGui", callback=dpg.show_imgui_demo)
-                    dpg.add_menu_item(label="ImPlot", callback=dpg.show_implot_demo)
-                    dpg.add_menu_item(label="Demo", callback=demo.show_demo)
-                
-                with dpg.menu(label="Tools"):
+                with dpg.menu(label="DPG Tools"):
+                    dpg.add_menu_item(label="Show ImGui Demo", callback=dpg.show_imgui_demo)
+                    dpg.add_menu_item(label="Show ImPlot Demo", callback=dpg.show_implot_demo)
+                    dpg.add_menu_item(label="Show DPG Demo", callback=demo.show_demo)
+                    dpg.add_menu_item(label="Show Debug", callback=dpg.show_debug)
                     dpg.add_menu_item(label="Show About", callback=lambda: dpg.show_tool(dpg.mvTool_About))
                     dpg.add_menu_item(label="Show Metrics", callback=lambda: dpg.show_tool(dpg.mvTool_Metrics))
                     dpg.add_menu_item(label="Show Documentation", callback=lambda: dpg.show_tool(dpg.mvTool_Doc))
@@ -132,6 +130,7 @@ class Program():
                     dpg.add_menu_item(label="Show Style Editor", callback=lambda: dpg.show_tool(dpg.mvTool_Style))
                     dpg.add_menu_item(label="Show Font Manager", callback=lambda: dpg.show_tool(dpg.mvTool_Font))
                     dpg.add_menu_item(label="Show Item Registry", callback=lambda: dpg.show_tool(dpg.mvTool_ItemRegistry))
+
 
                 
                 # TODO: Add callback for the save, and make sure it works.

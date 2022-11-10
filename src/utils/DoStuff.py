@@ -3,6 +3,7 @@ import pandas as pd
 import pandas_ta as pta
 import numpy as np
 import dearpygui.dearpygui as dpg
+import schedule
 
 from statsmodels.tsa.stattools import coint, adfuller
 
@@ -209,6 +210,24 @@ def candles_to_list( candles):
     highs = list(candles['high'])
     volume = list(candles['volume'])
     return (dates, opens, closes, lows, highs, volume)
+
+
+
+def push_to_schedule(func, delay, timeframe):
+    if timeframe == "seconds":
+        schedule.every(delay).seconds.do(func)
+    elif timeframe == "minutes":
+        schedule.every(delay).minutes.do(func)
+    elif timeframe == "hours":
+        schedule.every(delay).hours.do(func)
+    elif timeframe == "days":
+        schedule.every(delay).days.do(func)
+    elif timeframe == "weeks":
+        schedule.every(delay).weeks.do(func)
+
+def run_pending(self):
+    while True:
+        schedule.run_pending()
 
 
 
