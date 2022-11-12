@@ -73,7 +73,7 @@ async def fetch_candles(ticker, timeframe, chart_id, viewport_width, viewport_he
     else:
         params = {"symbol":ticker, "interval": timeframe, "limit":1000}
 
-    candles = await _get(endpoint="/api/v3/klines", kwargs = params)
+    candles = await _get(endpoint="/api/v3/uiKlines", kwargs = params)
 
 
     time, open, high, low, close, volume = [],[],[],[],[],[]

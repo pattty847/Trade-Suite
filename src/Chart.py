@@ -1,9 +1,7 @@
 import asyncio
-import datetime
-import pytz
+import json
 import Exchanges.Binance as Binance
 import dearpygui.dearpygui as dpg
-import sys
 import utils.DoStuff as do
 import ccxt as ccxt
 import os
@@ -76,11 +74,10 @@ class Chart():
         for time in strat.get_nyse_market_hours("close"):
             dpg.add_plot_annotation(label="NY Close", default_value=(time, 0), color=[219, 148, 103, 255], parent=f"candle-{symbol}")
 
-    
-
-    # def start_websocket(self, sender, app_data, user_data):
-    #     thread = Threading
-
+    def cleanup(self):
+        dpg.delete_item("nyse-addon")
+        dpg.delete_item(f"chart-{self.previous_symbol}")
+        dpg.delete_item('settings')
 
     
     def push_chart(self, symbol_=None, timeframe_=None):
@@ -91,15 +88,16 @@ class Chart():
             symbol_ (str, optional): A symbol. Defaults to None.
             timeframe_ (str, optional): A timeframe. Defaults to None.
         """
-        dpg.delete_item(f"chart-{self.previous_symbol}")
-        dpg.delete_item('settings')
+
+        self.cleanup()
 
         symbol = dpg.get_value(f'symbol-{self.exchange}').strip()
         timeframe = dpg.get_value(f'timeframe-{self.exchange}').strip()
 
         self.previous_symbol = symbol
 
-        candles = asyncio.run(Binance.fetch_candles(ticker=symbol if not symbol_ else symbol_, timeframe = Binance.timeframes[timeframe] if not timeframe_ else timeframe_, chart_id = f'{self.exchange}-child', viewport_width = self.viewport_width, viewport_height = self.viewport_height))
+        candles = asyncio.run(Binance.fetch_candles(ticker=symbol if not symbol_ else symbol_, timeframe = Binance.timeframes[timeframe] if not timeframe_ else timeframe_, \
+             chart_id = f'{self.exchange}-child', viewport_width = self.viewport_width, viewport_height = self.viewport_height))
 
         # Create websocket by passing the ticker and @kline<timeframe>?
         
@@ -148,10 +146,19 @@ class Chart():
                     dpg.fit_axis_data(xaxis_vol)
 
             # Indicators menu
-            with dpg.menu(label="Chart Settings", parent="main-menu-bar"):
+            with dpg.menu(label="Chart Settings", parent="main-menu-bar" , tag='nyse-addon'):
                 dpg.add_menu_item(label="[Add] NYSE Opens & Closes", callback=self.add_market_opens_closes)
 
         # Maybe call a new function passing the websocket, and chart tags so it can be updated?
+
+
+    def add_to_favorites(self):
+        symbol = dpg.get_value(f"symbol-{self.exchange}").strip()
+        timeframe = dpg.get_value(f"timeframe-{self.exchange}").strip()
+
+        dpg.add_button(label=f"{symbol} {timeframe}", parent='favorites', callback = lambda: self.push_chart(symbol, timeframe))
+
+        do.update_settings(self.settings['exchanges']['main']['favorites'], {symbol:timeframe})
 
 
 
@@ -159,9 +166,9 @@ class Chart():
         with dpg.child_window(parent=self.exchange, tag=f"{self.exchange}-child"):
 
             with dpg.group(horizontal=True, tag="favorites"):
+
                 add = dpg.add_button(label="Add Ticker")
-                dpg.add_button(label="BTC/USDT", callback= lambda: self.push_chart("BTCUSDT", "15m"))
-                dpg.add_button(label="ETH/USDT", callback= lambda: self.push_chart("ETHUSDT", "15m"))
+
 
                 with dpg.popup(add, mousebutton=dpg.mvMouseButton_Left):
                     dpg.add_input_text(tag=f"symbols-searcher-{self.exchange}", hint="Search",
@@ -173,5 +180,5 @@ class Chart():
                     dpg.add_listbox(self.timeframes, label="Timeframe", tag=f"timeframe-{self.exchange}", num_items=10)
 
                     with dpg.group(horizontal=True):
-                        dpg.add_button(label="Add to Favorites", callback=lambda: dpg.add_button(label=dpg.get_value(f"symbol-{self.exchange}"), parent="favorites", callback=lambda: self.push_chart(dpg.get_value(f"symbol-{self.exchange}"), dpg.get_value(f"timeframe-{self.exchange}"))))
-                        dpg.add_button(label="Go", callback = self.push_chart)
+                        dpg.add_button(label="Add to Favorites", callback=self.add_to_favorites)
+                        dpg.add_button(label="Go", callback = lambda: self.push_chart(dpg.get_value(f"symbol-{self.exchange}").strip(), dpg.get_value(f"timeframe-{self.exchange}").strip()))
