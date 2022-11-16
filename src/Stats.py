@@ -8,15 +8,18 @@ def pull_stats():
     URL = 'https://coinalyze.net/'
     columns = ["Coin", "Price", "Chg 24H", "Vol 24H", "Open Interest", "OI Chg 24H", "OI Share", "OI / VOL24H", "FR AVG", "PFR AVG", "Liqs. 24H"]
     stats = pd.read_html(URL)[0][columns]
+
+    top_ten = stats.head(10)
     
     try:
-        with open("src\\Exchanges\\CSV\\previous_stats.csv", "r"):
-            previous_stats = pd.read_csv("src\\Exchanges\\CSV\\previous_stats.csv")
+        with open("exchanges/stats/previous_stats.csv", "r"):
+            previous_stats = pd.read_csv("exchanges/stats/previous_stats.csv")
     except FileNotFoundError as e:
-        stats.to_csv(f"src\\Exchanges\\CSV\\previous_stats.csv", index=False)
+        os.makedirs("exchanges/stats")
+        stats.to_csv(f"exchanges/stats/previous_stats.csv", index=False)
         previous_stats = None
     
-    return (stats, previous_stats, columns)
+    return (stats, previous_stats, columns, top_ten)
 
 def push_stats_panel(sender, primary_window_width):
 
