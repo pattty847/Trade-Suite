@@ -2,9 +2,59 @@ import dearpygui.dearpygui as dpg
 import utils.DoStuff as do
 import pandas as pd
 import os
+import asyncio
+import aiohttp
 
 
-def pull_stats():
+def fetch_cmc():
+    from requests import Request, Session
+    from requests.exceptions import ConnectionError, Timeout, TooManyRedirects
+    import json
+
+    url = 'https://sandbox-api.coinmarketcap.com/v1/cryptocurrency/listings/latest'
+    parameters = {
+    'start':'1',
+    'limit':'5000',
+    'convert':'USD'
+    }
+    headers = {
+    'Accepts': 'application/json',
+    'X-CMC_PRO_API_KEY': '31c20493-3635-494b-852a-904ffb636906',
+    }
+
+    session = Session()
+    session.headers.update(headers)
+
+    try:
+        response = session.get(url, params=parameters)
+        data = json.loads(response.text)
+        print(data)
+    except (ConnectionError, Timeout, TooManyRedirects) as e:
+        print(e)
+
+print(fetch_cmc())
+
+
+async def fetch_coinmarketcap(limit: str, currency: str):
+    API_KEY = "31c20493-3635-494b-852a-904ffb636906"
+    URL = 'https://sandbox-api.coinmarketcap.com/v1/cryptocurrency/listings/latest'
+    PARAMS = {
+    'start':'1',
+    'limit':limit,
+    'convert':currency
+    }
+    HEADERS = {
+    'Accepts': 'application/json',
+    'X-CMC_PRO_API_KEY': API_KEY,
+    }
+    async with aiohttp.ClientSession() as session:
+        async with session.get(URL, headers = HEADERS, params = PARAMS) as response:
+            print(response.status)
+            print(await response.text())
+
+# asyncio.run(fetch_coinmarketcap("5000", "USD"))
+
+def fetch_coinalyze():
     URL = 'https://coinalyze.net/'
     columns = ["Coin", "Price", "Chg 24H", "Vol 24H", "Open Interest", "OI Chg 24H", "OI Share", "OI / VOL24H", "FR AVG", "PFR AVG", "Liqs. 24H"]
     stats = pd.read_html(URL)[0][columns]
@@ -23,7 +73,7 @@ def pull_stats():
 
 def push_stats_panel(sender, primary_window_width):
 
-    market_stats, previous_stats, columns = pull_stats()
+    market_stats, previous_stats, columns = fetch_coinalyze()
 
     with dpg.window(label="Crypto Stats", tag="stats-window", width=800, height=1000, pos=[15, 60], on_close = lambda sender: dpg.delete_item(sender)):
         

@@ -1,0 +1,7 @@
+ccxt
+pandas
+pandas_ta
+dearpygui
+schedule
+statsmodels
+lxml

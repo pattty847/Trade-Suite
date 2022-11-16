@@ -1,8 +1,6 @@
 import asyncio
 import sys
-import exchanges.binance as binance
 import dearpygui.dearpygui as dpg
-import exchanges.binance as binance
 import utils.DoStuff as do
 import pandas as pd
 import pandas_ta as ta
@@ -99,6 +97,8 @@ class Charts:
     def draw_chart(self, symbol, exchange, timeframe, parent, since = "2015-09-01 00:00:00"):
 
         # TODO: Since should be optional, or set to a certain timeframe based on if its > a day or < than
+
+        dpg.add_loading_indicator(circle_count=7, parent="main", tag="loading", pos=[self.viewport_width/2, self.viewport_height/2 - 110], radius=10.0)
 
         dpg.delete_item(self.last_chart)
 

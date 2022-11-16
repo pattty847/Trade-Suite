@@ -6,9 +6,6 @@ import ccxt
 from Charts import Charts
 import utils.DoStuff as do
 
-
-# TODO: Maybe have each Chart() --extend--> Main()
-
 class Main(Charts):
 
     def __init__(self) -> None:
@@ -19,7 +16,7 @@ class Main(Charts):
         self.active_exchanges = []
 
         self.config = {
-            "main_window":{"primary_window_width":2000},
+            "main_window":{"primary_window_width":1200},
             "default_symbol":"BTCUSDT",
             "default_exchange":"binance",
             "default_timeframe":"1h"
@@ -30,6 +27,8 @@ class Main(Charts):
         self.EXCHANGE_LIST = ccxt.exchanges
 
         self.dev = True
+
+        self.run_program()
 
 
     def load_markets(self, exchange):
@@ -108,8 +107,6 @@ class Main(Charts):
     def draw_main_menu(self, font):
         with dpg.window(label="Main Menu", tag=self.MAIN_WINDOW, no_resize=True, no_scrollbar=True):
 
-            
-
             dpg.bind_font(font)
                 
             self.draw_main_menu_nav_bar()
@@ -142,7 +139,7 @@ class Main(Charts):
         self.draw_main_menu(font)
 
 
-        dpg.create_viewport(title='Trade Suite', width=self.primary_window_width, height=self.primary_window_height, resizable=False)
+        dpg.create_viewport(title='Trade Suite', width=self.primary_window_width, height=self.primary_window_height, resizable=False, x_pos=5, y_pos=5)
         dpg.setup_dearpygui()
         dpg.show_viewport()
         dpg.set_primary_window(self.MAIN_WINDOW, True)
@@ -156,4 +153,3 @@ class Main(Charts):
 
 
 trade_suite = Main()
-trade_suite.run_program()
