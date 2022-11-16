@@ -41,6 +41,16 @@ def zscore(series: pd.Series):
         _type_: Z-Score series
     """
     return (series - series.mean()) / pta.stdev(series)
+
+
+def help(message):
+    last_item = dpg.last_item()
+    group = dpg.add_group(horizontal=True)
+    dpg.move_item(last_item, parent=group)
+    dpg.capture_next_item(lambda s: dpg.move_item(s, parent=group))
+    t = dpg.add_text("(?)", color=[0, 255, 0])
+    with dpg.tooltip(t):
+        dpg.add_text(message)
     
 
 def _config(sender, keyword, user_data):
