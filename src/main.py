@@ -52,7 +52,7 @@ class Main(Charts):
         """ Load a new exchange window.
 
         Args:
-            sender (int): id of listbox user clicked to add chart
+            sender (int): id of listbox user cRlicked to add chart
             app_data (None): None
             user_data (str): Exchange name user clicked on
         """
@@ -74,7 +74,6 @@ class Main(Charts):
                     markets=markets
                 )
                 self.active_exchanges.append(user_data)
-                print(self.active_exchanges)
             else:
                 dpg.delete_item("loading")
 

@@ -4,8 +4,11 @@ import exchanges.binance as binance
 import dearpygui.dearpygui as dpg
 import exchanges.binance as binance
 import utils.DoStuff as do
-import ccxt
+import pandas as pd
+import pandas_ta as ta
 import Data as data
+import Trade as trade
+import Stats as stats
 
 class Charts:
 
@@ -30,6 +33,15 @@ class Charts:
         
         self.init_window() # Create a window for this exchange
         self.draw_charts_menu_nav_bar() # Draws the main navigation bar which waits for input to open a chart
+
+
+    # TODO: Add the trade and market panels
+    def trade_panel(self, sender, app_data, user_data):
+        trade.push_trade_panel(sender, self.viewport_width)
+
+
+    def market_stats_panel(self, sender, app_data, user_data):
+        stats.push_stats_panel(sender, self.viewport_width)
     
 
     def push_chart(self, sender, app_data, user_data):
@@ -47,8 +59,6 @@ class Charts:
             symbol=dpg.get_value("symbols"), 
             exchange=self.exchange,
             timeframe=dpg.get_value("timeframes"),
-            viewport_width=self.viewport_width,
-            viewport_height=self.viewport_height,
             parent=self.exchange
         )
 
@@ -69,14 +79,17 @@ class Charts:
     def draw_charts_menu_nav_bar(self):
         with dpg.menu_bar(parent=self.exchange):
 
-            with dpg.menu(label="Symbol"):
-                dpg.add_listbox(sorted(self.symbols), tag="symbols", default_value=self.symbols[0], label=self.symbols[0], callback=lambda : dpg.configure_item("symbols", label=dpg.get_value("symbols")))
-            with dpg.menu(label="Timeframe"):
-                dpg.add_listbox(self.timeframes, tag="timeframes", default_value=self.timeframes[4], label=self.timeframes[4], callback=lambda : dpg.configure_item("timeframes", label=dpg.get_value("timeframes")))
+            with dpg.menu(label="Symbol", tag="symbols-menu"):
+                dpg.add_listbox(sorted(self.symbols), default_value=self.symbols[0], tag="symbols",  label=self.symbols[0], callback=lambda : dpg.configure_item("symbols-menu", label=dpg.get_value("symbols")))
+            with dpg.menu(label="Timeframe", tag="timeframes-menu"):
+                dpg.add_listbox(self.timeframes, default_value=self.timeframes, tag="timeframes", label=self.timeframes[4], callback=lambda : dpg.configure_item("timeframes-menu", label=dpg.get_value("timeframes")))
 
-            dpg.add_selectable(label="+", width=10, callback=self.push_chart)
+            dpg.add_menu_item(label="+", callback=self.push_chart)
 
-    def draw_chart(self, symbol, exchange, timeframe, viewport_width, viewport_height, parent, since = "2015-09-01 00:00:00"):
+            dpg.add_menu_item(label="Trade", callback=self.trade_panel)
+            dpg.add_menu_item(label="Stats", callback=self.market_stats_panel)
+
+    def draw_chart(self, symbol, exchange, timeframe, parent, since = "2015-09-01 00:00:00"):
 
         # TODO: Since should be optional, or set to a certain timeframe based on if its > a day or < than
 
@@ -89,6 +102,8 @@ class Charts:
 
         # Storage dictionary for fetched candles
         ohlcv = {"time":[], "open":[], "high":[], "low":[], "close":[], "volume":[]}
+        df = pd.DataFrame(ohlcv)
+        print(df)
         for row in self.candles:
             ohlcv['time'].append(row[0]/1000)
             ohlcv['open'].append(float(row[1]))
