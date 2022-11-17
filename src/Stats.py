@@ -1,3 +1,4 @@
+import json
 import dearpygui.dearpygui as dpg
 import utils.DoStuff as do
 import pandas as pd
@@ -6,53 +7,53 @@ import asyncio
 import aiohttp
 
 
-def fetch_cmc():
-    from requests import Request, Session
-    from requests.exceptions import ConnectionError, Timeout, TooManyRedirects
-    import json
-
-    url = 'https://sandbox-api.coinmarketcap.com/v1/cryptocurrency/listings/latest'
-    parameters = {
-    'start':'1',
-    'limit':'5000',
-    'convert':'USD'
+COIN_MARKET_CAP_ENDPOINTS = {
+    "category":{
+        "cryptocurrencies":"/cryptocurrency/",
+        "exchange":"/exchange/",
+        "global-metrics":"/global-metrics/",
+        "tools":"/tools/",
+        "blockchain":"/blockchain/",
+        "fiat":"/fiat/",
+        "partners":"/partners/",
+        "key":"/key/",
+        "content":"/content/"    
+    },
+    "endpoint":{
+        "latest":"/latest",
+        "historical":"/historical",
+        "info":"/info",
+        "map":"/map"
     }
-    headers = {
-    'Accepts': 'application/json',
-    'X-CMC_PRO_API_KEY': '31c20493-3635-494b-852a-904ffb636906',
-    }
-
-    session = Session()
-    session.headers.update(headers)
-
-    try:
-        response = session.get(url, params=parameters)
-        data = json.loads(response.text)
-        print(data)
-    except (ConnectionError, Timeout, TooManyRedirects) as e:
-        print(e)
-
-print(fetch_cmc())
+}
 
 
-async def fetch_coinmarketcap(limit: str, currency: str):
+async def fetch_coinmarketcap(limit: str, currency: str, category, endpoint):
     API_KEY = "31c20493-3635-494b-852a-904ffb636906"
-    URL = 'https://sandbox-api.coinmarketcap.com/v1/cryptocurrency/listings/latest'
+    URL = f'https://sandbox-api.coinmarketcap.com/v1/{category}/listings/{endpoint}'
     PARAMS = {
-    'start':'1',
-    'limit':limit,
-    'convert':currency
+        'start':'1',
+        'limit':limit,
+        'convert':currency
     }
     HEADERS = {
-    'Accepts': 'application/json',
-    'X-CMC_PRO_API_KEY': API_KEY,
+        'Accepts': 'application/json',
+        'X-CMC_PRO_API_KEY': API_KEY,
     }
     async with aiohttp.ClientSession() as session:
         async with session.get(URL, headers = HEADERS, params = PARAMS) as response:
             print(response.status)
-            print(await response.text())
+            response = await response.json()
+            if response['data']:
+                return response
 
-# asyncio.run(fetch_coinmarketcap("5000", "USD"))
+
+def write_to_file(data, file: str):
+    with open(file, "w") as f:
+        json.dump(data, f)
+
+
+write_to_file(asyncio.run(fetch_coinmarketcap("100", "USD")), "coinmarketcap.csv")
 
 def fetch_coinalyze():
     URL = 'https://coinalyze.net/'
