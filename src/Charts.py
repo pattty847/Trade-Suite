@@ -40,29 +40,11 @@ class Charts:
 
 
     def market_stats_panel(self, sender, app_data, user_data):
-        stats.push_stats_panel(sender, self.viewport_width)
+        stats.push_stats_panel()
 
     def push_indicator_panel(self, sender, app_data, user_data):
         indicators.launch_indicator_panel(sender, app_data, user_data)
     
-
-    def push_chart(self, sender, app_data, user_data):
-        """ Invoked every time the "+" is clicked from the "main_nav_bar"
-
-        Args:
-            sender (_type_): _description_
-            app_data (_type_): _description_
-            user_data (_type_): _description_
-        """
-        self.active_symbol = dpg.get_value("symbols")
-        self.active_timeframe = dpg.get_value("timeframes")
-
-        self.draw_chart(
-            symbol=dpg.get_value("symbols"), 
-            exchange=self.exchange,
-            timeframe=dpg.get_value("timeframes"),
-            parent=self.exchange
-        )
 
     def init_window(self):
         with dpg.window(label=f'Exchange: [{self.exchange}]',
@@ -81,24 +63,44 @@ class Charts:
     def draw_charts_menu_nav_bar(self):
         with dpg.menu_bar(parent=self.exchange):
 
-            with dpg.menu(label="Symbol", tag="symbols-menu"):
-                dpg.add_listbox(sorted(self.symbols), default_value=self.symbols[0], tag="symbols",  label=self.symbols[0], callback=lambda : dpg.configure_item("symbols-menu", label=dpg.get_value("symbols")))
-            with dpg.menu(label="Timeframe", tag="timeframes-menu"):
-                dpg.add_listbox(self.timeframes, default_value=self.timeframes, tag="timeframes", label=self.timeframes[4], callback=lambda : dpg.configure_item("timeframes-menu", label=dpg.get_value("timeframes")))
+            with dpg.menu(label="BTC/USDT", tag="symbols-menu"):
+                dpg.add_listbox(sorted(self.symbols), tag="symbols", default_value="BTC/USDT",  label=self.symbols[0], callback=lambda : dpg.configure_item("symbols-menu", label=dpg.get_value("symbols")))
+            
+            with dpg.menu(label="1h", tag="timeframes-menu"):
+                dpg.add_listbox(self.timeframes, tag="timeframes", default_value="1h", callback=lambda : dpg.configure_item("timeframes-menu", label=dpg.get_value("timeframes")))
 
             dpg.add_menu_item(label="+", callback=self.push_chart)
 
             dpg.add_menu_item(label="Trade", callback=self.trade_panel)
             dpg.add_menu_item(label="Stats", callback=self.market_stats_panel)
-            dpg.add_menu_item(label="Testing", check=True, callback=lambda s, a: dpg.configure_app(wait_for_input=a))
             dpg.add_menu_item(label="Indicators", callback=self.push_indicator_panel)
+            dpg.add_menu_item(label="Testing", check=True, callback=lambda s, a: dpg.configure_app(wait_for_input=a))
+
+    
+    def push_chart(self, sender, app_data, user_data):
+        """ Invoked every time the "+" is clicked from the "main_nav_bar"
+
+        Args:
+            sender (_type_): _description_
+            app_data (_type_): _description_
+            user_data (_type_): _description_
+        """
+        self.active_symbol = dpg.get_value("symbols")
+        self.active_timeframe = dpg.get_value("timeframes")
+
+        self.draw_chart(
+            symbol=dpg.get_value("symbols"), 
+            exchange=self.exchange,
+            timeframe=dpg.get_value("timeframes"),
+            parent=self.exchange
+        )
 
 
-    def draw_chart(self, symbol, exchange, timeframe, parent, since = "2015-09-01 00:00:00"):
+    def draw_chart(self, symbol, exchange, timeframe, parent, since = "2019-01-01 00:00:00"):
 
         # TODO: Since should be optional, or set to a certain timeframe based on if its > a day or < than
-
-        dpg.add_loading_indicator(circle_count=7, parent="main", tag="loading", pos=[self.viewport_width/2, self.viewport_height/2 - 110], radius=10.0)
+        dpg.add_text("Fetching Data", tag="fetching-text", parent=parent)
+        dpg.add_loading_indicator(circle_count=7, parent=parent, tag="loading", pos=[self.viewport_width/2, self.viewport_height/2 - 110], radius=10.0)
 
         dpg.delete_item(self.last_chart)
 
@@ -124,8 +126,7 @@ class Charts:
             print("No symbol for this exchange.")
             dpg.delete_item("loading")
             return
-        
-        dpg.delete_item("loading")
+    
 
         # Candlestick plot and volume plot
         with dpg.subplots(2, 1, label="", width=-1, height=-1, 
@@ -133,6 +134,9 @@ class Charts:
                             row_ratios=[1.0, 0.25], 
                             parent=parent,
                             tag=f"chart-{symbol}"):
+
+            dpg.delete_item("loading")
+            dpg.delete_item("fetching-text")
 
             self.last_chart = f"chart-{symbol}"
 
@@ -153,7 +157,7 @@ class Charts:
             with dpg.plot():
 
                 dpg.add_plot_legend()
-                xaxis_vol = dpg.add_plot_axis(dpg.mvXAxis, label="Time [UTC]", time=True)
+                xaxis_vol = dpg.add_plot_axis(dpg.mvXAxis, label="Time [UTC]")
 
                 with dpg.plot_axis(dpg.mvYAxis, label="USD"):
 

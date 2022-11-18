@@ -53,7 +53,7 @@ def write_to_file(data, file: str):
         json.dump(data, f)
 
 
-write_to_file(asyncio.run(fetch_coinmarketcap("100", "USD")), "coinmarketcap.csv")
+# write_to_file(asyncio.run(fetch_coinmarketcap("100", "USD")), "coinmarketcap.csv")
 
 def fetch_coinalyze():
     URL = 'https://coinalyze.net/'
@@ -72,23 +72,72 @@ def fetch_coinalyze():
     
     return (stats, previous_stats, columns, top_ten)
 
-def push_stats_panel(sender, primary_window_width):
+def push_stats_panel():
 
-    market_stats, previous_stats, columns = fetch_coinalyze()
 
-    with dpg.window(label="Crypto Stats", tag="stats-window", width=800, height=1000, pos=[15, 60], on_close = lambda sender: dpg.delete_item(sender)):
-        
-        with dpg.table(tag='stats-table', borders_innerH=True, borders_innerV=True, borders_outerH=True, borders_outerV=True, resizable=True, sortable=True, callback=do.sort_callback):
-            
-            for col in columns:                                       # Generates the correct amount of columns
-                dpg.add_table_column(label=col)                       # Adds the headers
+    def convert_columns(dataframe):
+        """ The data pulled from coinalyze is formatted like so: $1.5k, $10b, etc. This data needs to be transformed into numerical format
+        so we can do arithmetic on it. 
 
-            
-            
-            for i in range(market_stats.shape[0]):                    # Shows the first n rows
+        Args:
+            dataframe (Dataframe): Coinalyze Dataframe
+        """
+        df = dataframe.copy()
+        print(df)
+        sufixes_ = {"":1, "k":1000, "m":1000000, "b":1000000000, "t":1000000000000, "%": 0.01}
+        signs = {"$":1, "+":1, "-":-1}
+        columns = {"Chg 24H":[], "Vol 24H":[], "Open Interest":[], "OI Chg 24H":[], "OI Share":[], "FR AVG":[], "PFR AVG":[], "Liqs. 24H":[]}
+        for column in ["Chg 24H", "Vol 24H", "Open Interest", "OI Chg 24H", "OI Share", "FR AVG", "PFR AVG", "Liqs. 24H"]:
+            for item in df.loc[:, column]:
+                suffix = str(item)[-1]
+                prefix = str(item)[:-1]
+                sign = str(item)[0]
+                nums = [str(x) for x in range(10)]
+                if suffix != "n":
+                    # print(column, prefix, suffix)
+                    number = prefix[1:]
+                    answer = float(float(number \
+                        if sign not in nums else prefix) * sufixes_[suffix]).__round__(6)
+                    if sign in signs:
+                        answer = answer * signs[sign]
+                    columns[column].append(answer)
+                else:
+                    columns[column].append("N/A")
+        return pd.DataFrame(columns)
+
                 
-                with dpg.table_row():
+
+
+    with open("exchanges/stats/previous_stats.csv", "r"):
+        previous_stats = pd.read_csv("exchanges/stats/previous_stats.csv")
+
+
+
+    # market_stats, previous_stats, columns, top_ten = fetch_coinalyze()
+    numerical_data = previous_stats.iloc[1:, 1:]
+    column_averages = []
+    convert_columns(numerical_data)
+
+
+    # with dpg.window(label="Crypto Stats", tag="stats-window", width=800, height=1000, pos=[15, 60], on_close = lambda sender: dpg.delete_item(sender)):
+        
+    #     with dpg.tree_node(label="Top 100"):    
+    #         with dpg.table(tag='stats-table', borders_innerH=True, borders_innerV=True, borders_outerH=True, borders_outerV=True, resizable=True, sortable=True, callback=do.sort_callback):
+                
+    #             columns = market_stats.iloc[:, 1:]
+
+
+    #             for col in columns:                                       # Generates the correct amount of columns
+    #                 dpg.add_table_column(label=col)                       # Adds the headers
+
+                
+    #             for i in range(market_stats.shape[0]):                    # Shows the first n rows
                     
-                    for j in range(market_stats.shape[1]):
+    #                 with dpg.table_row():
                         
-                        dpg.add_text(f"{market_stats.iloc[i,j]}")
+    #                     for j in range(market_stats.shape[1]):
+                            
+    #                         dpg.add_text(f"{market_stats.iloc[i,j]}")
+
+
+push_stats_panel()

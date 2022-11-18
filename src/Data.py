@@ -2,6 +2,7 @@ from asyncio import gather
 import asyncio
 import ccxt.async_support as ccas
 import ccxt  
+import dearpygui.dearpygui as dpg
 
 
 msec = 1000

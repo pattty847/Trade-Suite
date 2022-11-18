@@ -11,6 +11,7 @@ def launch_indicator_panel(sender, app_data, user_data):
             for col in range(4):
                 dpg.add_table_column()
 
-            for item in indicator_list:
-                with dpg.table_row():
+            
+            with dpg.table_row():
+                for item in indicator_list:
                     dpg.add_selectable(label=item)

@@ -51,12 +51,12 @@ class Main(Charts):
         """ Load a new exchange window.
 
         Args:
-            sender (int): id of listbox user cRlicked to add chart
+            sender (int): id of listbox user clicked to add chart
             app_data (None): None
             user_data (str): Exchange name user clicked on
         """
         # Check if there is already a window with the tag exchange
-        if not dpg.does_alias_exist(user_data):
+        if not dpg.does_item_exist(user_data):
             dpg.add_loading_indicator(circle_count=7, parent=self.MAIN_WINDOW, tag="loading", pos=[self.primary_window_width/2, self.primary_window_height/2 - 110], radius=10.0)
         
             # Call load_markets function passing the exchange
@@ -101,7 +101,6 @@ class Main(Charts):
                     for exchange in self.EXCHANGE_LIST:
                         dpg.add_selectable(label=exchange.capitalize(), callback=self.new_chart, user_data=exchange)
 
-                    
 
 
     def draw_main_menu(self, font):
