@@ -83,29 +83,31 @@ def push_stats_panel():
             dataframe (Dataframe): Coinalyze Dataframe
         """
         df = dataframe.copy()
-        print(df)
+        df.to_csv("out.csv")
         sufixes_ = {"":1, "k":1000, "m":1000000, "b":1000000000, "t":1000000000000, "%": 0.01}
         signs = {"$":1, "+":1, "-":-1}
         columns = {"Chg 24H":[], "Vol 24H":[], "Open Interest":[], "OI Chg 24H":[], "OI Share":[], "FR AVG":[], "PFR AVG":[], "Liqs. 24H":[]}
-        for column in ["Chg 24H", "Vol 24H", "Open Interest", "OI Chg 24H", "OI Share", "FR AVG", "PFR AVG", "Liqs. 24H"]:
+        nums = [str(x) for x in range(10)]
+        for column in columns.keys():
             for item in df.loc[:, column]:
                 suffix = str(item)[-1]
                 prefix = str(item)[:-1]
                 sign = str(item)[0]
-                nums = [str(x) for x in range(10)]
                 if suffix != "n":
-                    # print(column, prefix, suffix)
-                    number = prefix[1:]
-                    answer = float(float(number \
-                        if sign not in nums else prefix) * sufixes_[suffix]).__round__(6)
+                    number = prefix[1:] if sign not in nums else prefix
+                    answer = float((float(number) * sufixes_[suffix]) if suffix not in nums else (float(number)))
+                    # print(item +  " | ", f"{answer.__round__(4):,}")
                     if sign in signs:
                         answer = answer * signs[sign]
-                    columns[column].append(answer)
+                    columns[column].append(f"{answer.__round__(4):,}")
                 else:
                     columns[column].append("N/A")
-        return pd.DataFrame(columns)
-
-                
+                    
+        new_df = pd.DataFrame(columns)
+        new_df.insert(0, "Coin", dataframe.loc[:, "Coin"])
+        new_df.insert(1, "Price", dataframe.loc[:, "Price"])
+        new_df.insert(6, "OI / VOL24H", dataframe.loc[:, "OI / VOL24H"])
+        return new_df
 
 
     with open("exchanges/stats/previous_stats.csv", "r"):
@@ -113,31 +115,30 @@ def push_stats_panel():
 
 
 
-    # market_stats, previous_stats, columns, top_ten = fetch_coinalyze()
-    numerical_data = previous_stats.iloc[1:, 1:]
+    market_stats, previous_stats, columns, top_ten = fetch_coinalyze()
     column_averages = []
-    convert_columns(numerical_data)
+    stats = convert_columns(market_stats.iloc[:, :])
 
 
-    # with dpg.window(label="Crypto Stats", tag="stats-window", width=800, height=1000, pos=[15, 60], on_close = lambda sender: dpg.delete_item(sender)):
+    with dpg.window(label="Crypto Stats", tag="stats-window", width=800, height=1000, pos=[15, 60], on_close = lambda sender: dpg.delete_item(sender)):
         
-    #     with dpg.tree_node(label="Top 100"):    
-    #         with dpg.table(tag='stats-table', borders_innerH=True, borders_innerV=True, borders_outerH=True, borders_outerV=True, resizable=True, sortable=True, callback=do.sort_callback):
+        with dpg.tree_node(label="Top 100"):    
+            with dpg.table(tag='stats-table', borders_innerH=True, borders_innerV=True, borders_outerH=True, borders_outerV=True, resizable=True, sortable=True, callback=do.sort_callback):
                 
-    #             columns = market_stats.iloc[:, 1:]
+                columns = stats.iloc[:, :]
 
 
-    #             for col in columns:                                       # Generates the correct amount of columns
-    #                 dpg.add_table_column(label=col)                       # Adds the headers
+                for col in columns:                                       # Generates the correct amount of columns
+                    dpg.add_table_column(label=col)                       # Adds the headers
 
                 
-    #             for i in range(market_stats.shape[0]):                    # Shows the first n rows
+                for i in range(stats.shape[0]):                    # Shows the first n rows
                     
-    #                 with dpg.table_row():
+                    with dpg.table_row():
                         
-    #                     for j in range(market_stats.shape[1]):
+                        for j in range(stats.shape[1]):
                             
-    #                         dpg.add_text(f"{market_stats.iloc[i,j]}")
+                            dpg.add_text(f"{stats.iloc[i,j]}")
 
 
-push_stats_panel()
+# print(push_stats_panel())

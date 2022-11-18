@@ -151,4 +151,5 @@ class Main(Charts):
         dpg.destroy_context()
 
 
-trade_suite = Main()
+if __name__ == "__main__":
+    trade_suite = Main()
