@@ -115,30 +115,30 @@ def push_stats_panel():
 
 
 
-    market_stats, previous_stats, columns, top_ten = fetch_coinalyze()
-    column_averages = []
-    stats = convert_columns(market_stats.iloc[:, :])
-
+    # market_stats, previous_stats, columns, top_ten = fetch_coinalyze()
+    stats = previous_stats.iloc[:, :]
 
     with dpg.window(label="Crypto Stats", tag="stats-window", width=800, height=1000, pos=[15, 60], on_close = lambda sender: dpg.delete_item(sender)):
         
         with dpg.tree_node(label="Top 100"):    
+
             with dpg.table(tag='stats-table', borders_innerH=True, borders_innerV=True, borders_outerH=True, borders_outerV=True, resizable=True, sortable=True, callback=do.sort_callback):
                 
                 columns = stats.iloc[:, :]
+
 
 
                 for col in columns:                                       # Generates the correct amount of columns
                     dpg.add_table_column(label=col)                       # Adds the headers
 
                 
-                for i in range(stats.shape[0]):                    # Shows the first n rows
+                for i in range(columns.shape[0]):                    # Shows the first n rows
                     
                     with dpg.table_row():
                         
-                        for j in range(stats.shape[1]):
+                        for j in range(columns.shape[1]):
                             
-                            dpg.add_text(f"{stats.iloc[i,j]}")
+                            dpg.add_text(f"{columns.iloc[i,j]}")
 
 
-# print(push_stats_panel())
+# push_stats_panel()

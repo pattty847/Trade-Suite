@@ -19,7 +19,12 @@ class Main(Charts):
             "main_window":{"primary_window_width":1200},
             "default_symbol":"BTCUSDT",
             "default_exchange":"binance",
-            "default_timeframe":"1h"
+            "default_timeframe":"1h",
+            "exchanges":{
+                "mode":"sandbox",
+                "binance":{ "apiKey":"", "secret":"" },
+                "kucoin":{ "apiKey":"", "secret":"" }
+            }
         }
         self.primary_window_width = self.config['main_window']['primary_window_width']
         self.primary_window_height = int(self.config['main_window']['primary_window_width'] * 0.5625)
@@ -32,7 +37,20 @@ class Main(Charts):
 
 
     def load_markets(self, exchange):
-        api = getattr(ccxt, exchange) ()
+        if exchange in self.config['exchanges'].keys() and self.config['exchanges']['mode'] != "sandbox":
+            api = getattr(ccxt, exchange) (
+                {
+                    "apiKey":self.config['exchanges'][exchange]['apiKey'],
+                    "secret":self.config['exchanges'][exchange]['secret']
+                }
+            )
+            print(api.check_required_credentials())
+            print(f"Exchange: [{exchange}] | Trading: Yes")
+        else:
+            print(f"Exchange: [{exchange}] | Trading: No")
+            api = getattr(ccxt, exchange) ()
+
+
         if api.has['fetchOHLCV'] != True:
             print("This exchange does not offer candlestick data.")
             return None
@@ -57,14 +75,14 @@ class Main(Charts):
         """
         # Check if there is already a window with the tag exchange
         if not dpg.does_item_exist(user_data):
-            dpg.add_loading_indicator(circle_count=7, parent=self.MAIN_WINDOW, tag="loading", pos=[self.primary_window_width/2, self.primary_window_height/2 - 110], radius=10.0)
+            dpg.add_loading_indicator(circle_count=7, parent=self.MAIN_WINDOW, tag="main-loading", pos=[self.primary_window_width/2, self.primary_window_height/2 - 110], radius=10.0)
         
             # Call load_markets function passing the exchange
             api, markets = self.load_markets(user_data)
 
             # If the market returned markets and has fetchOHLCV abilities. 
             if markets:
-                dpg.delete_item("loading")
+                dpg.delete_item("main-loading")
                 user_data = Charts(
                     exchange= user_data,
                     api=api,
@@ -72,9 +90,10 @@ class Main(Charts):
                     viewport_height = self.primary_window_height,
                     markets=markets
                 )
+                print(user_data)
                 self.active_exchanges.append(user_data)
             else:
-                dpg.delete_item("loading")
+                dpg.delete_item("main-loading")
 
 
     def draw_main_menu_nav_bar(self):
