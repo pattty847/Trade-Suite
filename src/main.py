@@ -1,10 +1,12 @@
 import json
 import os
+import sys
 import dearpygui.dearpygui as dpg
 import dearpygui.demo as demo
 import ccxt
 from Charts import Charts
 import utils.DoStuff as do
+from screeninfo import get_monitors
 
 class Main(Charts):
 
@@ -16,7 +18,7 @@ class Main(Charts):
         self.active_exchanges = []
 
         self.config = {
-            "main_window":{"primary_window_width":1200},
+            "main_window":{"primary_window_width":1600},
             "default_symbol":"BTCUSDT",
             "default_exchange":"binance",
             "default_timeframe":"1h",
@@ -30,6 +32,7 @@ class Main(Charts):
         self.primary_window_height = int(self.config['main_window']['primary_window_width'] * 0.5625)
 
         self.EXCHANGE_LIST = ccxt.exchanges
+        self.EXCHANGE_FAVORITES = ["Binance", "Coinbasepro", "Kucoin"]
 
         self.dev = True
 
@@ -37,6 +40,17 @@ class Main(Charts):
 
 
     def load_markets(self, exchange):
+        """ Check if we have an api key and secret for the exchange and return a ccxt exchange object, and 
+        if no credentials return one with no trading capabilities plus the markets for that exchange.
+
+        It will save the market data to "exchanges" directory for faster loads.
+
+        Args:
+            exchange (str): Name of string.
+
+        Returns:
+            ccxt exchange, JSON: Returns the ccxt object and a dict containing all the markets.
+        """
         if exchange in self.config['exchanges'].keys() and self.config['exchanges']['mode'] != "sandbox":
             api = getattr(ccxt, exchange) (
                 {
@@ -64,15 +78,25 @@ class Main(Charts):
                 json.dump(markets, f, sort_keys=True)
             return api, markets
 
+    
+    def load_fonts(self):
+        # add a font registry and loads main font
+        with dpg.font_registry():
+            # first argument ids the path to the .ttf or .otf filec
+            default_font = dpg.add_font("fonts/LandasansMedium-ALJ6m.otf", 20)
+            return default_font
+
+
 
     def new_chart(self, sender, app_data, user_data):
-        """ Load a new exchange window.
+        """ Load a new exchange window (chart).
 
         Args:
             sender (int): id of listbox user clicked to add chart
             app_data (None): None
             user_data (str): Exchange name user clicked on
         """
+
         # Check if there is already a window with the tag exchange
         if not dpg.does_item_exist(user_data):
             dpg.add_loading_indicator(circle_count=7, parent=self.MAIN_WINDOW, tag="main-loading", pos=[self.primary_window_width/2, self.primary_window_height/2 - 110], radius=10.0)
@@ -90,15 +114,45 @@ class Main(Charts):
                     viewport_height = self.primary_window_height,
                     markets=markets
                 )
-                print(user_data)
                 self.active_exchanges.append(user_data)
             else:
                 dpg.delete_item("main-loading")
 
+    # TODO: Finish this
+    def push_exchange_to_favorites(self, sender, app_data, user_data):
+        exchange_value = dpg.get_value("exchange-list")
+        if exchange_value not in self.EXCHANGE_FAVORITES:
+            self.EXCHANGE_FAVORITES.append(exchange_value)
+            dpg.configure_item("favorites-list", items=self.EXCHANGE_FAVORITES)
+            dpg.delete_item("error-text")
+        else:
+            dpg.add_text("Already in Favorites", tag="error-text", parent="add-to-row")
+
+
+    # TODO: Update the favorites list in the settings json file
+    def close_favorites(self):
+        dpg.delete_item(dpg.last_container())
+        pass
+
+    def add_exchange_to_favorites(self):
+        with dpg.window(label="Exchange Favorites", modal=True, width=450, height=355, on_close=self.close_favorites):
+            with dpg.table():
+                dpg.add_table_column(label="Exchanges")
+                dpg.add_table_column(label="Favorites")         
+
+                with dpg.table_row():
+                    dpg.add_listbox(self.EXCHANGE_LIST, num_items=10, tag="exchange-list")
+                    dpg.add_listbox(self.EXCHANGE_FAVORITES, num_items=10, tag="favorites-list")
+
+                with dpg.table_row(tag="add-to-row"):
+                    dpg.add_button(label="Add To", callback=self.push_exchange_to_favorites)
 
     def draw_main_menu_nav_bar(self):
 
         with dpg.viewport_menu_bar(tag=self.MAIN_MENU_BAR):
+
+            dpg.add_menu_item(label="Full Screen", callback=dpg.toggle_viewport_fullscreen)
+        
             if self.dev:
                 # TODO: Add more DPG GUI things, like stype editor, etc
                 with dpg.menu(label="DPG Tools"):
@@ -120,22 +174,18 @@ class Main(Charts):
                     for exchange in self.EXCHANGE_LIST:
                         dpg.add_selectable(label=exchange.capitalize(), callback=self.new_chart, user_data=exchange)
 
+                with dpg.menu(label="Favorites"):
+                    for exchange in self.EXCHANGE_FAVORITES:
+                        dpg.add_selectable(label=exchange.capitalize(), callback=self.new_chart, user_data=exchange.lower())
+
+            with dpg.menu(label="Settings"):
+                dpg.add_selectable(label="Add Exchange to Favorites", callback=self.add_exchange_to_favorites)
 
 
     def draw_main_menu(self, font):
         with dpg.window(label="Main Menu", tag=self.MAIN_WINDOW, no_resize=True, no_scrollbar=True):
 
             dpg.bind_font(font)
-                
-            self.draw_main_menu_nav_bar()
-
-
-    def load_fonts(self):
-        # add a font registry
-        with dpg.font_registry():
-            # first argument ids the path to the .ttf or .otf filec
-            default_font = dpg.add_font("assets/LandasansMedium-ALJ6m.otf", 20)
-            return default_font
 
 
     def run_program(self):
@@ -155,9 +205,12 @@ class Main(Charts):
 
         font = self.load_fonts()
         self.draw_main_menu(font)
+        self.draw_main_menu_nav_bar()
+
+        # Here we can immediately draw the chart layout using the last saved chart
 
 
-        dpg.create_viewport(title='Trade Suite', width=self.primary_window_width, height=self.primary_window_height, resizable=False, x_pos=5, y_pos=5)
+        dpg.create_viewport(title='Trade Suite', x_pos=5, y_pos=5)
         dpg.setup_dearpygui()
         dpg.show_viewport()
         dpg.set_primary_window(self.MAIN_WINDOW, True)

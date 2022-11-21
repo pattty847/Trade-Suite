@@ -14,6 +14,19 @@ import Indicators as indicators
 class Charts:
 
     def __init__(self, exchange, api, viewport_width, viewport_height, markets):
+        """ Main Chart creation class.
+
+        To create a chart on make an object with all the specified parameters and call draw_chart().
+
+        Args:
+            exchange (str): Actual name of the exchange.
+            api (ccxt): CCXT exchange object
+            viewport_width (int): Main viewport width
+            viewport_height (int): Main viewport height
+            markets (JSON): JSON of all the market data from the exchange: ccxt.load_markets()
+        """
+
+
         # Name of exchange AND tag for dearpygui
         self.exchange = exchange
 
@@ -36,16 +49,14 @@ class Charts:
         self.draw_charts_menu_nav_bar() # Draws the main navigation bar which waits for input to open a chart
 
 
-    # TODO: Add the trade and market panels
     def trade_panel(self, sender, app_data, user_data):
         trade.push_trade_panel(sender, self.viewport_width)
-
 
     def market_stats_panel(self, sender, app_data, user_data):
         stats.push_stats_panel()
 
     def push_indicator_panel(self, sender, app_data, user_data):
-        indicators.launch_indicator_panel(sender, app_data, user_data)
+        indicators.push_indicator_panel(sender, app_data, user_data)
     
 
     def init_window(self):
@@ -69,8 +80,28 @@ class Charts:
             with open(f"exchanges/candles/{self.exchange}/{self.active_symbol.replace('/', '')}-{self.active_timeframe}.json", "w") as f:
                 f.write(data)
 
-        with dpg.window(label="Data Saved", modal=True):
+        with dpg.window(label="Data Saved", modal=True, pos=(self.viewport_width/2, self.viewport_height/2)):
             dpg.add_text(f"{self.active_symbol}-{self.active_timeframe} successfully saved.")
+
+
+
+    # TODO: Impliment this function
+    # TODO: Fetch new data since save and update the file
+    def pull_from_cache(self):
+        files = os.listdir(f"exchanges/candles/{self.exchange}/")
+        sym = dpg.get_value(f"{self.exchange}-symbols").replace('/', '')
+        tf = dpg.get_value(f"{self.exchange}-timeframes")
+        file = f"{sym}-{tf}.json"
+        if file in files:
+            print(file)
+            try: 
+                with open(f"exchanges/candles/{self.exchange}/{file}", "r") as f:
+                    return (True, json.load(f))
+            except Exception as e:
+                print("Error")
+        else:
+            return (False, json.load(f))
+
 
 
     # TODO: Show you solving real world problems while creating this program with the cookbook and things you have learned
@@ -105,6 +136,7 @@ class Charts:
             dpg.add_menu_item(label="Indicators", callback=self.push_indicator_panel)
             dpg.add_menu_item(label="Save Data", callback=self.save_candle_stick_data)
             do.help("Click me to save this candlestick data locally for a faster loadup.")
+            dpg.add_menu_item(label="Load Data", callback=self.pull_from_cache)
 
     
     def push_chart(self, sender, app_data, user_data):
@@ -119,14 +151,13 @@ class Charts:
         self.active_timeframe = dpg.get_value(f"{self.exchange}-timeframes")
 
         self.draw_chart(
-            symbol=dpg.get_value(f"{self.exchange}-symbols"), 
-            exchange=self.exchange,
-            timeframe=dpg.get_value(f"{self.exchange}-timeframes"),
+            symbol=self.active_symbol, 
+            timeframe=self.active_timeframe,
             parent=self.exchange
         )
 
 
-    def draw_chart(self, symbol, exchange, timeframe, parent, since = "2019-01-01 00:00:00"):
+    def draw_chart(self, symbol, timeframe, parent, since = "2019-01-01 00:00:00"):
 
         # TODO: Since should be optional, or set to a certain timeframe based on if its > a day or < than
         dpg.add_text("Fetching Data", tag=f"{self.exchange}-fetching-text", parent=parent)
@@ -134,9 +165,13 @@ class Charts:
 
         dpg.delete_item(self.last_chart)
 
-        #                          scrape_ohlcv(api="binance", max_retries=3, symbol="BTC/USDT", timeframe="1d", since="2015-09-01 00:00:00", limit=1000)
         # TODO: Check if there is saved data for this exchange, symbol, and timeframe: use that data if so
-        candles = asyncio.run(data.scrape_ohlcv(api=self.exchange, max_retries=3, symbol=symbol, timeframe=timeframe, since=since, limit=1000))
+        # has_cache, cache_OHLCV = self.pull_from_cache()
+        # cache_OHLCV = data.fetch_latest_candles(cache_OHLCV)
+        # if has_cache:
+        #     self.OHLCV = cache_OHLCV
+
+        candles = asyncio.run(data.fetch_candles(api=self.exchange, max_retries=3, symbol=symbol, timeframe=timeframe, since=since, limit=1000))
         self.OHLCV = candles
 
         # Storage dictionary for fetched candles
@@ -169,7 +204,7 @@ class Charts:
             self.last_chart = f"{self.exchange}-chart-{symbol}"
 
             # Candlestick plot
-            with dpg.plot(tag=f"{self.exchange}-candle-{symbol}", label=f"Exchange: {exchange.upper()} | Symbol: {symbol} | Timeframe: {timeframe}"):
+            with dpg.plot(tag=f"{self.exchange}-candle-{symbol}", label=f"Exchange: {self.exchange.upper()} | Symbol: {symbol} | Timeframe: {timeframe}"):
 
                 dpg.add_plot_legend()
 
@@ -177,7 +212,15 @@ class Charts:
 
                 with dpg.plot_axis(dpg.mvYAxis, label="USD"):
 
-                    dpg.add_candle_series(ohlcv['time'], ohlcv['open'], ohlcv['close'], ohlcv['low'], ohlcv['high'], tag=f"{self.exchange}-candle-{symbol}-series", time_unit=do.convert_timeframe(timeframe))
+                    dpg.add_candle_series(
+                        ohlcv['time'], 
+                        ohlcv['open'], 
+                        ohlcv['close'], 
+                        ohlcv['low'], 
+                        ohlcv['high'], 
+                        tag=f"{self.exchange}-candle-{symbol}-series", 
+                        time_unit=do.convert_timeframe(timeframe)
+                    )
                     dpg.fit_axis_data(dpg.top_container_stack())
                     dpg.fit_axis_data(xaxis_candles)
                     
@@ -185,7 +228,7 @@ class Charts:
             with dpg.plot():
 
                 dpg.add_plot_legend()
-                xaxis_vol = dpg.add_plot_axis(dpg.mvXAxis, label="Time [UTC]")
+                xaxis_vol = dpg.add_plot_axis(dpg.mvXAxis, label="Time [UTC]", time=True)
 
                 with dpg.plot_axis(dpg.mvYAxis, label="USD"):
 

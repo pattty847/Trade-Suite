@@ -1,7 +1,7 @@
 import dearpygui.dearpygui as dpg
 
 
-def launch_indicator_panel(sender, app_data, user_data):
+def push_indicator_panel(sender, app_data, user_data):
         
     with dpg.window(label="Indicator", tag="indicator-window", width=400, height=500, pos=[0, 25], on_close = lambda: dpg.delete_item("indicator-window")):
 

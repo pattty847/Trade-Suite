@@ -102,6 +102,10 @@ def _add_config_options(item, columns, *names, **kwargs):
         dpg.pop_container_stack()
 
 
+def _log(sender, app_data, user_data):
+    print(f"sender: {sender}, \t app_data: {app_data}, \t user_data: {user_data}")
+
+
 def searcher(searcher, result, search_list):
     """ This function is used to search a listbox based on a list.
 
