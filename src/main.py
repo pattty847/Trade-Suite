@@ -17,7 +17,21 @@ class Main(Charts):
 
         self.active_exchanges = []
 
-        self.config = {
+        self.config = self.load_settings()
+
+        self.primary_window_width = self.config['main_window']['primary_window_width']
+        self.primary_window_height = int(self.config['main_window']['primary_window_width'] * 0.5625)
+
+        self.EXCHANGE_LIST = ccxt.exchanges
+        self.EXCHANGE_FAVORITES = ["binance", "coinbasepro", "kucoin"]
+
+        self.dev = True
+
+        self.run_program()
+
+
+    def load_settings(self):
+        default_settings = {
             "main_window":{"primary_window_width":1600},
             "default_symbol":"BTCUSDT",
             "default_exchange":"binance",
@@ -28,15 +42,14 @@ class Main(Charts):
                 "kucoin":{ "apiKey":"", "secret":"" }
             }
         }
-        self.primary_window_width = self.config['main_window']['primary_window_width']
-        self.primary_window_height = int(self.config['main_window']['primary_window_width'] * 0.5625)
 
-        self.EXCHANGE_LIST = ccxt.exchanges
-        self.EXCHANGE_FAVORITES = ["Binance", "Coinbasepro", "Kucoin"]
-
-        self.dev = True
-
-        self.run_program()
+        try:
+            with open("config.json", "r") as f:
+                return json.load(f)
+        except FileNotFoundError as e:
+            with open("config.json", "w") as f:
+                json.dump(default_settings, f)
+            return default_settings
 
 
     def load_markets(self, exchange):
@@ -154,7 +167,7 @@ class Main(Charts):
             dpg.add_menu_item(label="Full Screen", callback=dpg.toggle_viewport_fullscreen)
         
             if self.dev:
-                # TODO: Add more DPG GUI things, like stype editor, etc
+                # Developer Menu
                 with dpg.menu(label="DPG Tools"):
                     dpg.add_menu_item(label="Show ImGui Demo", callback=dpg.show_imgui_demo)
                     dpg.add_menu_item(label="Show ImPlot Demo", callback=dpg.show_implot_demo)

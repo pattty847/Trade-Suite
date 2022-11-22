@@ -3,7 +3,7 @@ import dearpygui.dearpygui as dpg
 import utils.DoStuff as do
 import pandas as pd
 import os
-import asyncio
+import yfinance
 import aiohttp
 
 
@@ -72,6 +72,7 @@ def fetch_coinalyze():
     
     return (stats, previous_stats, columns, top_ten)
 
+
 def push_stats_panel():
 
 
@@ -113,8 +114,6 @@ def push_stats_panel():
     with open("exchanges/stats/previous_stats.csv", "r"):
         previous_stats = pd.read_csv("exchanges/stats/previous_stats.csv")
 
-
-
     # market_stats, previous_stats, columns, top_ten = fetch_coinalyze()
     stats = previous_stats.iloc[:, :]
 
@@ -139,6 +138,3 @@ def push_stats_panel():
                         for j in range(columns.shape[1]):
                             
                             dpg.add_text(f"{columns.iloc[i,j]}")
-
-
-# push_stats_panel()

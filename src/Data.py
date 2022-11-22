@@ -91,37 +91,37 @@ async def fetch_latest_candles(candles, exchange, symbol, timeframe):
     return new_ohlcv
 
     
-    def get_orders(self, symbol, since):
-        market = api.market(symbol)
-        one_hour = 3600 * 1000
-        since = api.parse8601(since)
-        now = api.milliseconds()
-        end = api.parse8601(api.ymd(now) + 'T00:00:00')
-        previous_trade_id = None
-        filename = "CSV\\" + api.id + '\\' + market['id'].replace('/', '').lower() + '-orders.csv'
-        all_orders = []
-        while since < end:
-            try:
-                trades = api.fetch_trades(symbol, since)
-                print(api.iso8601(since), len(trades), 'trades')
-                if len(trades):
-                    last_trade = trades[-1]
-                    if previous_trade_id != last_trade['id']:
-                        since = last_trade['timestamp']
-                        previous_trade_id = last_trade['id']
-                        for trade in trades:
-                            all_orders.append({
-                                'timestamp': trade['timestamp'],
-                                'size': trade['amount'],
-                                'price': trade['price'],
-                                'side': trade['side'],
-                            })
-                    else:
-                        since += one_hour
+def get_orders(self, api, symbol, since):
+    market = api.market(symbol)
+    one_hour = 3600 * 1000
+    since = api.parse8601(since)
+    now = api.milliseconds()
+    end = api.parse8601(api.ymd(now) + 'T00:00:00')
+    previous_trade_id = None
+    filename = "CSV\\" + api.id + '\\' + market['id'].replace('/', '').lower() + '-orders.csv'
+    all_orders = []
+    while since < end:
+        try:
+            trades = api.fetch_trades(symbol, since)
+            print(api.iso8601(since), len(trades), 'trades')
+            if len(trades):
+                last_trade = trades[-1]
+                if previous_trade_id != last_trade['id']:
+                    since = last_trade['timestamp']
+                    previous_trade_id = last_trade['id']
+                    for trade in trades:
+                        all_orders.append({
+                            'timestamp': trade['timestamp'],
+                            'size': trade['amount'],
+                            'price': trade['price'],
+                            'side': trade['side'],
+                        })
                 else:
                     since += one_hour
-            except ccxt.NetworkError as e:
-                print(type(e).__name__, str(e))
-                api.sleep(60000)
-        df = pd.DataFrame(all_orders, columns=["timestamp", "size", "price", "side"])
-        return df
+            else:
+                since += one_hour
+        except ccxt.NetworkError as e:
+            print(type(e).__name__, str(e))
+            api.sleep(60000)
+    df = pd.DataFrame(all_orders, columns=["timestamp", "size", "price", "side"])
+    return df

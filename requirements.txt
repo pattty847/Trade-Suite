@@ -5,3 +5,4 @@ dearpygui
 schedule
 statsmodels
 lxml
+html5lib
