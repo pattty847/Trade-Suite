@@ -1,31 +1,45 @@
+import datetime
 import json
 import os
+import threading
+import time
 import dearpygui.dearpygui as dpg
 import dearpygui.demo as demo
 import ccxt
 from Charts import Charts
+import Stats as stats
 import utils.DoStuff as do
 from screeninfo import get_monitors
 
 class Main(Charts):
 
     def __init__(self) -> None:
+        # DPG tags for items
         self.MAIN_WINDOW = "main"
         self.CHART_WINDOW = "chart"
         self.MAIN_MENU_BAR = "main-menu-bar"
 
+        # List of active chart objects
         self.active_exchanges = []
 
+        # Dictionary containing config options
         self.config = self.load_settings()
 
+        # Main viewport size
         self.primary_window_width = self.config['main_window']['primary_window_width']
         self.primary_window_height = int(self.config['main_window']['primary_window_width'] * 0.5625)
 
+        # List of exchange titles
         self.EXCHANGE_LIST = ccxt.exchanges
+
+        # List of user favorite exchanges
+        # TODO: Add favorites menu
         self.EXCHANGE_FAVORITES = ["binance", "coinbasepro", "kucoin"]
 
+        # Adds developer menu
         self.dev = True
 
+        # Starts program
         self.run_program()
 
 
@@ -42,7 +56,7 @@ class Main(Charts):
                 "primary_window_width": 1600
             },
             "last_saved_chart":{
-                "binance":{"BTCUSDT":"1h"}
+                "binance":["BTCUSDT", "1d"]
             },
             "exchanges": {
                 "mode": "sandbox",
@@ -184,14 +198,35 @@ class Main(Charts):
         self.config.update({"fullscreen":"False"}) if self.config['fullscreen'] == "True" else self.config.update({"fullscreen":"True"})
         print(self.config['fullscreen'])
 
+    def market_stats_panel(self, sender, app_data, user_data):
+        stats.push_stats_panel()
+
+    def clock(self):
+        i = 0
+        while True:
+            dpg.set_value("time", str(datetime.datetime.now().strftime("%x %X")))
+            if i == 0:
+                time.sleep(1/datetime.datetime.now().second)
+            else:
+                time.sleep(1)
+            i+=1
+
 
     def draw_main_menu_nav_bar(self):
 
         with dpg.viewport_menu_bar(tag=self.MAIN_MENU_BAR):
+
+            dpg.add_text("", tag="time")
+            x = threading.Thread(target=self.clock, daemon=True)
+            x.start()
             
             with dpg.menu(label="Full Screen"):
                 dpg.add_menu_item(label="Toggle", callback=dpg.toggle_viewport_fullscreen)
-                dpg.add_checkbox(label="Open in Fullscreen?", default_value=True, callback=self.set_fullscreen_option)
+                dpg.add_checkbox(
+                    label="Open in Fullscreen?", 
+                    default_value=True if self.config['fullscreen'] == "True" else False, 
+                    callback=self.set_fullscreen_option
+                )
         
             if self.dev:
                 # Developer Menu
@@ -217,6 +252,10 @@ class Main(Charts):
                 with dpg.menu(label="Favorites"):
                     for exchange in self.EXCHANGE_FAVORITES:
                         dpg.add_selectable(label=exchange.capitalize(), callback=self.new_chart, user_data=exchange.lower())
+
+
+            dpg.add_menu_item(label="Stats", callback=self.market_stats_panel)
+
 
             with dpg.menu(label="Settings"):
                 dpg.add_selectable(label="Add Exchange to Favorites", callback=self.add_exchange_to_favorites)
@@ -248,8 +287,8 @@ class Main(Charts):
 
         # Here we can immediately draw the chart layout using the last saved chart
         last_exchange = list(self.config['last_saved_chart'].keys())[0]
-        last_symbol = list(self.config['last_saved_chart'][last_exchange].keys())[0]
-        last_timeframe = list(self.config['last_saved_chart'][last_exchange].values())[0]
+        last_symbol = self.config['last_saved_chart'][last_exchange][0]
+        last_timeframe = self.config['last_saved_chart'][last_exchange][1]
         
         api, markets = self.load_markets(last_exchange)
         last_saved_chart = Charts(

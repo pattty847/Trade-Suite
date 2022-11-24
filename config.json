@@ -1,1 +1,1 @@
-{"fullscreen": "True", "main_window": {"primary_window_width": 2000}, "last_saved_chart": {"binance": {"BTCUSDT": "1d"}}, "exchanges": {"mode": "sandbox", "binance": {"apiKey": "", "secret": ""}, "kucoin": {"apiKey": "", "secret": ""}}}
+{"fullscreen": "False", "main_window": {"primary_window_width": 2000}, "last_saved_chart": {"binance": ["BTCUSDT", "1d"]}, "exchanges": {"mode": "sandbox", "binance": {"apiKey": "", "secret": ""}, "kucoin": {"apiKey": "", "secret": ""}}}

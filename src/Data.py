@@ -142,7 +142,3 @@ async def fetch_trades(exchange, symbol):
     df = pd.DataFrame(data).to_csv("trades.csv")
     print (df)
     await api.close()
-
-
-
-# print(asyncio.run(fetch_trades("binance", "BTCUSDT")))

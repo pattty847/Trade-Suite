@@ -9,7 +9,6 @@ import pandas as pd
 import pandas_ta as ta
 import Data as data
 import Trade as trade
-import Stats as stats
 import Indicators as indicators
 
 class Charts:
@@ -59,9 +58,6 @@ class Charts:
 
     def trade_panel(self, sender, app_data, user_data):
         trade.push_trade_panel(sender, self.viewport_width)
-
-    def market_stats_panel(self, sender, app_data, user_data):
-        stats.push_stats_panel()
 
     def push_indicator_panel(self, sender, app_data, user_data):
         indicators.push_indicator_panel(sender, app_data, user_data)
@@ -145,7 +141,6 @@ class Charts:
             dpg.add_menu_item(label="+", callback=self.push_chart)
 
             dpg.add_menu_item(label="Trade", callback=self.trade_panel)
-            dpg.add_menu_item(label="Stats", callback=self.market_stats_panel)
             dpg.add_menu_item(label="Indicators", callback=self.push_indicator_panel)
 
             with dpg.menu(label="Data"):
