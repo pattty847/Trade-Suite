@@ -1,6 +1,5 @@
 import json
 import os
-import sys
 import dearpygui.dearpygui as dpg
 import dearpygui.demo as demo
 import ccxt
@@ -32,14 +31,22 @@ class Main(Charts):
 
     def load_settings(self):
         default_settings = {
-            "main_window":{"primary_window_width":1600},
-            "default_symbol":"BTCUSDT",
-            "default_exchange":"binance",
-            "default_timeframe":"1h",
-            "exchanges":{
-                "mode":"sandbox",
-                "binance":{ "apiKey":"", "secret":"" },
-                "kucoin":{ "apiKey":"", "secret":"" }
+            "main_window": {
+                "primary_window_width": 1600
+            },
+            "last_saved_chart":{
+                "binance":{"BTCUSDT":"1h"}
+            },
+            "exchanges": {
+                "mode": "sandbox",
+                "binance": {
+                    "apiKey": "",
+                    "secret": ""
+                },
+                "kucoin": {
+                    "apiKey": "",
+                    "secret": ""
+                }
             }
         }
 
@@ -77,17 +84,20 @@ class Main(Charts):
             print(f"Exchange: [{exchange}] | Trading: No")
             api = getattr(ccxt, exchange) ()
 
+        if not os.path.isdir("exchanges/markets"):
+            os.makedirs("exchanges/markets")
+
 
         if api.has['fetchOHLCV'] != True:
             print("This exchange does not offer candlestick data.")
             return None
         try:
-            with open(f"exchanges/{exchange}-markets.json") as f:
+            with open(f"exchanges/markets/{exchange}-markets.json") as f:
                 markets =  json.load(f)
                 return api, markets
         except FileNotFoundError as e:
             markets = api.load_markets()
-            with open(f"exchanges/{exchange}-markets.json", "w") as f:
+            with open(f"exchanges/markets/{exchange}-markets.json", "w") as f:
                 json.dump(markets, f, sort_keys=True)
             return api, markets
 
@@ -122,6 +132,8 @@ class Main(Charts):
                 dpg.delete_item("main-loading")
                 user_data = Charts(
                     exchange= user_data,
+                    symbol=None,
+                    timeframe=None,
                     api=api,
                     viewport_width = self.primary_window_width,
                     viewport_height = self.primary_window_height,
@@ -141,14 +153,14 @@ class Main(Charts):
         else:
             dpg.add_text("Already in Favorites", tag="error-text", parent="add-to-row")
 
-
-    # TODO: Update the favorites list in the settings json file
+    # TODO: Finish this
     def close_favorites(self):
         dpg.delete_item(dpg.last_container())
         pass
 
+
     def add_exchange_to_favorites(self):
-        with dpg.window(label="Exchange Favorites", modal=True, width=450, height=355, on_close=self.close_favorites):
+        with dpg.window(label="Exchange Favorites", modal=True, width=450, height=355, pos=(self.primary_window_width/2, self.primary_window_height/2), on_close=self.close_favorites):
             with dpg.table():
                 dpg.add_table_column(label="Exchanges")
                 dpg.add_table_column(label="Favorites")         
@@ -159,6 +171,7 @@ class Main(Charts):
 
                 with dpg.table_row(tag="add-to-row"):
                     dpg.add_button(label="Add To", callback=self.push_exchange_to_favorites)
+
 
     def draw_main_menu_nav_bar(self):
 
@@ -196,7 +209,7 @@ class Main(Charts):
 
 
     def draw_main_menu(self, font):
-        with dpg.window(label="Main Menu", tag=self.MAIN_WINDOW, no_resize=True, no_scrollbar=True):
+        with dpg.window(label="Main Menu", tag=self.MAIN_WINDOW):
 
             dpg.bind_font(font)
 
@@ -206,10 +219,6 @@ class Main(Charts):
         menu bar for the overall program that appears at the top of the viewport.
 
         """
-
-        # Create our data storage folders upon initial load
-        if not os.path.isdir("exchanges"):
-            os.makedirs("exchanges")
         
         dpg.create_context()
 
@@ -221,9 +230,25 @@ class Main(Charts):
         self.draw_main_menu_nav_bar()
 
         # Here we can immediately draw the chart layout using the last saved chart
+        last_exchange = list(self.config['last_saved_chart'].keys())[0]
+        last_symbol = list(self.config['last_saved_chart'][last_exchange].keys())[0]
+        last_timeframe = list(self.config['last_saved_chart'][last_exchange].values())[0]
+        
+        api, markets = self.load_markets(last_exchange)
+        last_saved_chart = Charts(
+            exchange = last_exchange,
+            symbol=last_symbol,
+            timeframe=last_timeframe,
+            api = api,
+            viewport_width = self.primary_window_width,
+            viewport_height = self.primary_window_height,
+            markets=markets
+        )
+        self.active_exchanges.append(last_saved_chart)
+        last_saved_chart.draw_chart(symbol=last_symbol, timeframe=last_timeframe, parent=last_exchange)
 
 
-        dpg.create_viewport(title='Trade Suite', x_pos=5, y_pos=5)
+        dpg.create_viewport(title='Trade Suite', x_pos=5, y_pos=5, width=self.primary_window_width, height=self.primary_window_height)
         dpg.setup_dearpygui()
         dpg.show_viewport()
         dpg.set_primary_window(self.MAIN_WINDOW, True)
@@ -233,6 +258,9 @@ class Main(Charts):
             # you can manually stop by using stop_dearpygui()
             dpg.render_dearpygui_frame()
 
+
+        # Items placed after the while will be executed upon program close.
+        # Use this to save any unsaved config changes.
         dpg.destroy_context()
 
 

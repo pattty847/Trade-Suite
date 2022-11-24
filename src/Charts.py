@@ -1,4 +1,5 @@
 import asyncio
+import datetime
 import json
 import os
 import sys
@@ -13,7 +14,7 @@ import Indicators as indicators
 
 class Charts:
 
-    def __init__(self, exchange, api, viewport_width, viewport_height, markets):
+    def __init__(self, exchange, symbol, timeframe, api, viewport_width, viewport_height, markets):
         """ Main Chart creation class.
 
         To create a chart on make an object with all the specified parameters and call draw_chart().
@@ -25,6 +26,8 @@ class Charts:
             viewport_height (int): Main viewport height
             markets (JSON): JSON of all the market data from the exchange: ccxt.load_markets()
         """
+
+        self.MAIN_WINDOW = "main" # information on the main viewport tag
 
 
         # Name of exchange AND tag for dearpygui
@@ -39,8 +42,13 @@ class Charts:
         self.symbols = list(self.markets.keys()) # List of symbols from the exchange
         self.timeframes = list(self.api.timeframes.keys()) # List of timeframes from the exchange
 
+        # Viewport information
         self.viewport_width = viewport_width
         self.viewport_height = viewport_height
+
+        # Immediatel draw chart information
+        self.symbol = symbol
+        self.timeframe = timeframe
 
         self.last_chart = None # temp storage of last symbol so we can delete that chart when adding a new one
         self.OHLCV = None
@@ -62,7 +70,7 @@ class Charts:
     def init_window(self):
         with dpg.window(label=f'Exchange: [{self.exchange}]',
             tag=self.exchange,
-            on_close=dpg.delete_item(self.exchange),        # This is where you need to handle deletion of object?
+            on_close=dpg.delete_item(self.exchange),
             width=self.viewport_width - 25, 
             height=self.viewport_height - 75, 
             pos=[5, 30]):
@@ -70,18 +78,20 @@ class Charts:
             pass
 
 
-    def save_candle_stick_data(self):
-        data = json.dumps(self.OHLCV, indent=4)
-        try:
-            with open(f"exchanges/candles/{self.exchange}/{self.active_symbol.replace('/', '')}-{self.active_timeframe}.json", "w") as f:
-                f.write(data)
-        except FileNotFoundError as e:
-            os.makedirs(f"exchanges/candles/{self.exchange}")
-            with open(f"exchanges/candles/{self.exchange}/{self.active_symbol.replace('/', '')}-{self.active_timeframe}.json", "w") as f:
-                f.write(data)
+    def save_candle_data(self):
+        PATH = f"exchanges/candles/{self.exchange}"
+        FILE = f"{PATH}/{self.symbol.replace('/', '')}-{self.timeframe}.csv"
+
+        if os.path.exists(FILE):
+            pd.DataFrame(self.OHLCV).to_csv(FILE, mode="a", index=False, header=False)
+
+        else:
+            if not os.path.exists(PATH):
+                os.makedirs(f"exchanges/candles/{self.exchange}")
+            pd.DataFrame(self.OHLCV).to_csv(FILE, index=False, header=False)
 
         with dpg.window(label="Data Saved", modal=True, pos=(self.viewport_width/2, self.viewport_height/2)):
-            dpg.add_text(f"{self.active_symbol}-{self.active_timeframe} successfully saved.")
+            dpg.add_text(f"{self.symbol}-{self.timeframe} successfully saved.")
 
 
 
@@ -110,23 +120,24 @@ class Charts:
     def draw_charts_menu_nav_bar(self):
         with dpg.menu_bar(parent=self.exchange):
 
-            with dpg.menu(label="BTC/USDT", tag=f"{self.exchange}-symbols-menu"):
+            with dpg.menu(label=self.symbol if self.symbol is not None else "BTC/USDT", tag=f"{self.exchange}-symbols-menu"):
                 dpg.add_listbox(
                     sorted(self.symbols), 
+                    default_value=self.symbol,
                     tag=f"{self.exchange}-symbols", 
-                    default_value="BTC/USDT",  
-                    label=self.symbols[0], 
                     callback=lambda : dpg.configure_item(f"{self.exchange}-symbols-menu", 
-                    label=dpg.get_value(f"{self.exchange}-symbols"))
+                    label=dpg.get_value(f"{self.exchange}-symbols")),
+                    num_items=10
                 )
             
-            with dpg.menu(label="1h", tag=f"{self.exchange}-timeframes-menu"):
+            with dpg.menu(label=self.timeframe if self.timeframe is not None else "1h", tag=f"{self.exchange}-timeframes-menu"):
                 dpg.add_listbox(
                     self.timeframes, 
+                    default_value=self.timeframe,
                     tag=f"{self.exchange}-timeframes", 
-                    default_value="1h", 
                     callback=lambda : dpg.configure_item(f"{self.exchange}-timeframes-menu", 
-                    label=dpg.get_value(f"{self.exchange}-timeframes"))
+                    label=dpg.get_value(f"{self.exchange}-timeframes")),
+                    num_items=8
                 )
 
             dpg.add_menu_item(label="+", callback=self.push_chart)
@@ -134,45 +145,51 @@ class Charts:
             dpg.add_menu_item(label="Trade", callback=self.trade_panel)
             dpg.add_menu_item(label="Stats", callback=self.market_stats_panel)
             dpg.add_menu_item(label="Indicators", callback=self.push_indicator_panel)
-            dpg.add_menu_item(label="Save Data", callback=self.save_candle_stick_data)
-            do.help("Click me to save this candlestick data locally for a faster loadup.")
-            dpg.add_menu_item(label="Load Data", callback=self.pull_from_cache)
+
+            with dpg.menu(label="Data"):
+                dpg.add_menu_item(label="Save", callback=self.save_candle_data)
+                dpg.add_menu_item(label="Load", callback=self.pull_from_cache)
 
     
-    def push_chart(self, sender, app_data, user_data):
+    def push_chart(self):
         """ Invoked every time the "+" is clicked from the "main_nav_bar"
-
-        Args:
-            sender (_type_): _description_
-            app_data (_type_): _description_
-            user_data (_type_): _description_
         """
-        self.active_symbol = dpg.get_value(f"{self.exchange}-symbols")
-        self.active_timeframe = dpg.get_value(f"{self.exchange}-timeframes")
+        self.symbol = dpg.get_value(f"{self.exchange}-symbols")
+        self.timeframe = dpg.get_value(f"{self.exchange}-timeframes")
 
         self.draw_chart(
-            symbol=self.active_symbol, 
-            timeframe=self.active_timeframe,
+            symbol=self.symbol, 
+            timeframe=self.timeframe,
             parent=self.exchange
         )
 
 
-    def draw_chart(self, symbol, timeframe, parent, since = "2019-01-01 00:00:00"):
+    def draw_chart(self, symbol, timeframe, parent, since = "2022-01-01 00:00:00"):
+        """ Function which is called to draw a chart to a window tagged as the exchange name. Only one chart / exchange right now, many 
+        exchanges at once can be opened. It's used to immediately draw a chart upon application opening.
+
+        Args:
+            symbol (str): Name of the symbol
+            timeframe (str): Name of the timeframe
+            parent (str): Name of the parent the chart will be applied to
+            since (str, optional): _description_. Defaults to "2022-10-01 00:00:00".
+        """
+
+        date_time_obj = datetime.datetime.strptime(since, '%Y-%m-%d %H:%M:%S')
+        
+        # Using this section to determine # of candles that will be returned for a progress bar during candle fetch
+        print((datetime.datetime.now() - date_time_obj))
 
         # TODO: Since should be optional, or set to a certain timeframe based on if its > a day or < than
         dpg.add_text("Fetching Data", tag=f"{self.exchange}-fetching-text", parent=parent)
-        dpg.add_loading_indicator(circle_count=7, parent=parent, tag=f"{self.exchange}-loading", pos=[self.viewport_width/2, self.viewport_height/2 - 110], radius=10.0)
+        dpg.add_loading_indicator(parent=parent, tag=f"{self.exchange}-loading", pos=[self.viewport_width/2, self.viewport_height/2 - 110], radius=10.0, style=1)
 
         dpg.delete_item(self.last_chart)
 
         # TODO: Check if there is saved data for this exchange, symbol, and timeframe: use that data if so
-        # has_cache, cache_OHLCV = self.pull_from_cache()
-        # cache_OHLCV = data.fetch_latest_candles(cache_OHLCV)
-        # if has_cache:
-        #     self.OHLCV = cache_OHLCV
 
-        candles = asyncio.run(data.fetch_candles(api=self.exchange, max_retries=3, symbol=symbol, timeframe=timeframe, since=since, limit=1000))
-        self.OHLCV = candles
+
+        self.OHLCV = asyncio.run(data.fetch_candles(exchange=self.exchange, max_retries=3, symbol=symbol, timeframe=timeframe, since=since, limit=1000, dataframe=False))
 
         # Storage dictionary for fetched candles
         ohlcv = {"time":[], "open":[], "high":[], "low":[], "close":[], "volume":[]}
@@ -185,12 +202,11 @@ class Charts:
             ohlcv['volume'].append(float(row[5]))
         
         # Error handling for symbol not found.
-        if candles is None:
+        if self.OHLCV is None:
             print("No symbol for this exchange.")
             dpg.delete_item(f"{self.exchange}-loading")
             return
     
-
         # Candlestick plot and volume plot
         with dpg.subplots(2, 1, label="", width=-1, height=-1, 
                             link_all_x=True, 

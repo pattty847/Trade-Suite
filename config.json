@@ -2,11 +2,8 @@
     "main_window": {
         "primary_window_width": 1600
     },
-    "last_saved_tabs":{
-        "binance":{"BTCUSDT":"1h"},
-        "kucoin":{"ETHUSDT":"4h"},
-        "coinbasepro":{"ETHUSDT":"4h"},
-        "bybit":{"ETHUSDT":"1d"}
+    "last_saved_chart":{
+        "binance":{"BTCUSDT":"1d"}
     },
     "exchanges": {
         "mode": "sandbox",
