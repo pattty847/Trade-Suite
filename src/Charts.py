@@ -68,6 +68,8 @@ class Charts:
     
 
     def init_window(self):
+        """ This is the parent of the charts. It is the exchange window, tagged with the exchange's name.
+        """
         with dpg.window(label=f'Exchange: [{self.exchange}]',
             tag=self.exchange,
             on_close=dpg.delete_item(self.exchange),

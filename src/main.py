@@ -30,7 +30,14 @@ class Main(Charts):
 
 
     def load_settings(self):
+        """ This function will be called upon startup to load the settings or store the default settings,
+        and set the self.config
+
+        Returns:
+            dict: Dictionary object containing a structure like below.
+        """
         default_settings = {
+            "fullscreen":"True",
             "main_window": {
                 "primary_window_width": 1600
             },
@@ -173,11 +180,18 @@ class Main(Charts):
                     dpg.add_button(label="Add To", callback=self.push_exchange_to_favorites)
 
 
+    def set_fullscreen_option(self):
+        self.config.update({"fullscreen":"False"}) if self.config['fullscreen'] == "True" else self.config.update({"fullscreen":"True"})
+        print(self.config['fullscreen'])
+
+
     def draw_main_menu_nav_bar(self):
 
         with dpg.viewport_menu_bar(tag=self.MAIN_MENU_BAR):
-
-            dpg.add_menu_item(label="Full Screen", callback=dpg.toggle_viewport_fullscreen)
+            
+            with dpg.menu(label="Full Screen"):
+                dpg.add_menu_item(label="Toggle", callback=dpg.toggle_viewport_fullscreen)
+                dpg.add_checkbox(label="Open in Fullscreen?", default_value=True, callback=self.set_fullscreen_option)
         
             if self.dev:
                 # Developer Menu
@@ -219,6 +233,9 @@ class Main(Charts):
         menu bar for the overall program that appears at the top of the viewport.
 
         """
+
+        # If the user turns on fullscreen, we set the viewport windows to the resolution of the screen.
+        self.isFullscreen()
         
         dpg.create_context()
 
@@ -251,6 +268,12 @@ class Main(Charts):
         dpg.create_viewport(title='Trade Suite', x_pos=5, y_pos=5, width=self.primary_window_width, height=self.primary_window_height)
         dpg.setup_dearpygui()
         dpg.show_viewport()
+
+        # DPG toggle for fullscreen must go here
+        if self.config['fullscreen'] == "True":
+
+            dpg.toggle_viewport_fullscreen()
+
         dpg.set_primary_window(self.MAIN_WINDOW, True)
         while dpg.is_dearpygui_running():
                         
@@ -261,7 +284,26 @@ class Main(Charts):
 
         # Items placed after the while will be executed upon program close.
         # Use this to save any unsaved config changes.
+        with open("config.json", "w") as f:
+            json.dump(self.config, f)
         dpg.destroy_context()
+
+
+    def isFullscreen(self):
+        from screeninfo import get_monitors
+        def get_monitor_size():
+            monitors = get_monitors()
+            for m in monitors:
+                if m.is_primary:
+                    monitors = m
+            main_monitor = {"width":monitors.width, "height":monitors.height}
+            return main_monitor
+
+        monitor = get_monitor_size()
+
+        if self.config['fullscreen'] == "True":
+            self.primary_window_width = monitor["width"]
+            self.primary_window_height = monitor["height"]
 
 
 if __name__ == "__main__":

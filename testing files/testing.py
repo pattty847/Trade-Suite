@@ -131,7 +131,7 @@ class MainMenu():
         # add a font registry
         with dpg.font_registry():
             # first argument ids the path to the .ttf or .otf filec
-            default_font = dpg.add_font("assets/LandasansMedium-ALJ6m.otf", 20)
+            default_font = dpg.add_font("fonts/LandasansMedium-ALJ6m.otf", 20)
             dpg.bind_font(default_font)
 
     def set_timeframe(self, sender, app_data, user_data):
