@@ -7,6 +7,43 @@ import yfinance
 import aiohttp
 
 # TODO: Change to dict()
+
+"""
+it looks like good candidate for Enum
+from enum import Enum
+
+class CoinCategories(Enum):
+  cryptocurrencies = "/cryptocurrency/"
+  exchange = "/exchange/"
+
+class CoinEndpoints(Enum):
+  latest = "/latest"
+  historical = "/historical"
+
+they will be accessable as
+CoinCategories.exchange
+
+or as
+CoinCategories["exchange"]
+
+u can get their value by .value
+or perhaps just using as class, without Enum :pithink: 
+then it will be accessable without .value
+class CoinCategories:
+  cryptocurrencies = "/cryptocurrency/"
+  exchange = "/exchange/"
+
+class CoinEndpoints:
+  latest = "/latest"
+  historical = "/historical"
+
+CoinEndpoints.latest
+
+
+Fixed structures over dynamic dictionary structures when possible
+"""
+
+
 COIN_MARKET_CAP_ENDPOINTS = dict({
         "category":{
             "cryptocurrencies":"/cryptocurrency/",
