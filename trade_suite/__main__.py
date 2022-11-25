@@ -6,12 +6,12 @@ import time
 import dearpygui.dearpygui as dpg
 import dearpygui.demo as demo
 import ccxt
-from trade_suite import stats
-from trade_suite import charts
-import trade_suite.utils.DoStuff as do
+import utils.DoStuff as do
+import stats
+from charts import Charts
 from screeninfo import get_monitors
 
-class Main(charts):
+class Main(Charts):
 
     def __init__(self):
         # DPG tags for items
@@ -155,7 +155,7 @@ class Main(charts):
             # If the market returned markets and has fetchOHLCV abilities. 
             if markets:
                 dpg.delete_item("main-loading")
-                user_data = charts(
+                user_data = Charts(
                     exchange= user_data,
                     symbol=None,
                     timeframe=None,

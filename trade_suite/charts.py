@@ -8,8 +8,8 @@ import pandas as pd
 import data as data
 import trade as trade
 import dearpygui.dearpygui as dpg
-import trade_suite.utils.DoStuff as do
-from trade_suite import indicators
+import utils.DoStuff as do
+import indicators
 from datetime import datetime, timedelta
 
 class Charts:

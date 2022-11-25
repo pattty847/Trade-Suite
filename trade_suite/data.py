@@ -49,6 +49,40 @@ it will be kind of.. almost to... rules of python to prepare package for.... pub
 or to build into binary file. Or to reuse it as a package in another code xD 
 
 
+it looks like good candidate for Enum
+from enum import Enum
+
+class CoinCategories(Enum):
+  cryptocurrencies = "/cryptocurrency/"
+  exchange = "/exchange/"
+
+class CoinEndpoints(Enum):
+  latest = "/latest"
+  historical = "/historical"
+
+they will be accessable as
+CoinCategories.exchange
+
+or as
+CoinCategories["exchange"]
+
+u can get their value by .value
+or perhaps just using as class, without Enum :pithink: 
+then it will be accessable without .value
+class CoinCategories:
+  cryptocurrencies = "/cryptocurrency/"
+  exchange = "/exchange/"
+
+class CoinEndpoints:
+  latest = "/latest"
+  historical = "/historical"
+
+CoinEndpoints.latest
+
+
+Fixed structures over dynamic dictionary structures when possible
+
+
 """
 
 msec = 1000
