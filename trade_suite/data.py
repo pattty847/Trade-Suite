@@ -36,6 +36,18 @@ to fix formatting
 with dpg.window(label="Crypto Stats", tag="stats-window", width=800, height=1000, pos=[15, 60], on_close = lambda sender: dpg.delete_item(sender)):
 
 
+(incomplete README)
+
+
+https://github.com/pattty847/Trade-Suite folder src can be renamed to trade_suite
+and file main.py to __main__.py
+import from from charts import Charts to from trade_suite import charts or to from .charts import charts
+and import from utils.DoSttuff as do renamed to import trade_suite.utils.do_stuff as do
+and adding __init__.py empty file to formersrc folder, and to src/utils folder
+then you application could be started as python3 -m trade_suite as one package, and will be having less tangled importing... situation 
+it will be kind of.. almost to... rules of python to prepare package for.... publishing... 
+or to build into binary file. Or to reuse it as a package in another code xD 
+
 
 """
 
