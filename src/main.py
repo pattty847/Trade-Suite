@@ -204,7 +204,7 @@ class Main(Charts):
     def clock(self):
         i = 0
         while True:
-            dpg.set_value("time", str(datetime.datetime.now().strftime("%x %X")))
+            dpg.configure_item("clock", label=str(datetime.datetime.now().strftime("%x %X")))
             if i == 0:
                 time.sleep(1/datetime.datetime.now().second)
             else:
@@ -216,7 +216,7 @@ class Main(Charts):
 
         with dpg.viewport_menu_bar(tag=self.MAIN_MENU_BAR):
 
-            dpg.add_text("", tag="time")
+            dpg.add_menu_item(label="", tag="clock")
             x = threading.Thread(target=self.clock, daemon=True)
             x.start()
             
@@ -269,7 +269,7 @@ class Main(Charts):
 
     def run_program(self):
         """ This function will set up the overall dearpygui framework, create a viewport, set the main window, and includes the
-        menu bar for the overall program that appears at the top of the viewport.
+        menu bar function calls for the overall program that appears at the top of the viewport.
 
         """
 

@@ -40,7 +40,19 @@ def update_charts(charts):
             time.sleep(.5)
 
 
-def get_old_candles(files, exchange, symbol, timeframe):
+def fetch_old_candles(files, exchange, symbol, timeframe):
+    """ Invoked by fetch_candles() to fetch old candle data in the storage. It will search for a symbol and timeframe
+    in a list of files, then return the candles as a dataframe
+
+    Args:
+        files (list): List of files to search.
+        exchange (str): Exchange name
+        symbol (str): Symbol name
+        timeframe (str): Timeframe
+
+    Returns:
+        _type_: Dataframe containing old candlestick data
+    """
     try:
         for file in files:
             if symbol in file and timeframe in file:
@@ -51,10 +63,31 @@ def get_old_candles(files, exchange, symbol, timeframe):
 
 
 async def fetch_candles(exchange: str, max_retries:int, symbol: str, timeframe: str, since: str, limit: int, dataframe: bool):
+    """ This function is called to fetch candlestick data from storage and the newest since the last saved date. It will return a list or dataframe
+    of the candles.
+
+    Args:
+        exchange (str): Exchange name
+        max_retries (int): Number of times to try fetching candles if failure occured
+        symbol (str): Symbol name
+        timeframe (str): Timeframe
+        since (str): UTC timestamp
+        limit (int): Number of candles to fetch per batch (max: 1000)
+        dataframe (bool): True to return data as dataframe, false for list
+
+    Returns:
+        _type_: _description_
+    """
     # TODO: Add to this function a way check if there exists a file for this exchange, symbol, timeframe and if so,
     # update the fetch since to the last timeframe in the file, update the file, and then return all_ohlcv
-    files = os.listdir(f"exchanges/candles/{exchange}")
+    PATH = f"exchanges/candles/{exchange}"
+    if os.path.exists(PATH):
+        files = os.listdir(PATH)
+        if os.path.exists(f"{PATH}/{symbol}-{timeframe}.csv"):
+            old_ohlcv = fetch_old_candles(files, exchange, symbol, timeframe)
+            last_pull_time = old_ohlcv.iat[-1, 0] # last stored time
 
+    # CCXT exchange object
     api = getattr(ccas, exchange)()
 
     timeframe_duration_in_seconds = api.parse_timeframe(timeframe)
@@ -62,8 +95,6 @@ async def fetch_candles(exchange: str, max_retries:int, symbol: str, timeframe: 
     timedelta = limit * timeframe_duration_in_ms
 
     all_ohlcv = []
-    old_ohlcv = get_old_candles(files, exchange, symbol, timeframe)
-    last_pull_time = old_ohlcv.iat[-1, 0] # last stored time
 
     now = api.milliseconds()
     fetch_since = api.parse8601(since)
@@ -85,7 +116,7 @@ async def fetch_candles(exchange: str, max_retries:int, symbol: str, timeframe: 
 
     # if old_ohlcv is not None concat the new candles and old, append the new candles to the file, and return the new concatinated results
 
-            
+    # start_thread(exchange, symbol, timeframe, candles, chart_tag)
     await api.close()
     return all_ohlcv if not dataframe else pd.DataFrame(all_ohlcv)
 

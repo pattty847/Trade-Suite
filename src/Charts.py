@@ -2,9 +2,7 @@ import asyncio
 import datetime
 import json
 import os
-import sys
-import threading
-import time
+from datetime import datetime, timedelta
 import dearpygui.dearpygui as dpg
 import utils.DoStuff as do
 import pandas as pd
@@ -53,6 +51,7 @@ class Charts:
 
         self.last_chart = None # temp storage of last symbol so we can delete that chart when adding a new one
         self.OHLCV = None
+        self.fetch_date = 180
         
         self.init_window() # Create a window for this exchange
         self.draw_charts_menu_nav_bar() # Draws the main navigation bar which waits for input to open a chart
@@ -112,6 +111,8 @@ class Charts:
         else:
             return (False, json.load(f))
 
+    def set_fetch_date(self, sender, app_data, user_data):
+        self.fetch_date = app_data
 
 
     # TODO: Show you solving real world problems while creating this program with the cookbook and things you have learned
@@ -121,6 +122,11 @@ class Charts:
         with dpg.menu_bar(parent=self.exchange):
 
             with dpg.menu(label=self.symbol if self.symbol is not None else "BTC/USDT", tag=f"{self.exchange}-symbols-menu"):
+
+                dpg.add_input_text(tag=f"symbols-searcher-{self.exchange}-symbols", hint="Search",
+                    callback=lambda sender, data: do.searcher(f"symbols-searcher-{self.exchange}-symbols", 
+                    f"{self.exchange}-symbols", self.symbols))
+
                 dpg.add_listbox(
                     sorted(self.symbols), 
                     default_value=self.symbol,
@@ -131,6 +137,12 @@ class Charts:
                 )
             
             with dpg.menu(label=self.timeframe if self.timeframe is not None else "1h", tag=f"{self.exchange}-timeframes-menu"):
+
+                dpg.add_input_text(tag=f"symbols-searcher-{self.exchange}-timeframes", hint="Search",
+                    callback=lambda sender, data: do.searcher(f"symbols-searcher-{self.exchange}-timeframes", 
+                    f"{self.exchange}-timeframes", self.timeframes))
+
+
                 dpg.add_listbox(
                     self.timeframes, 
                     default_value=self.timeframe,
@@ -141,6 +153,9 @@ class Charts:
                 )
 
             dpg.add_menu_item(label="+", callback=self.push_chart)
+
+            with dpg.menu(label="Fetch Date"):
+                dpg.add_slider_float(label="Days Ago", max_value=100.0, height=160, width=150, callback=self.set_fetch_date, format="%.2f")
 
             dpg.add_menu_item(label="Trade", callback=self.trade_panel)
             dpg.add_menu_item(label="Indicators", callback=self.push_indicator_panel)
@@ -183,11 +198,10 @@ class Charts:
             parent (str): Name of the parent the chart will be applied to
             since (str, optional): _description_. Defaults to "2022-10-01 00:00:00".
         """
-
-        date_time_obj = datetime.datetime.strptime(since, '%Y-%m-%d %H:%M:%S')
         
         # Using this section to determine # of candles that will be returned for a progress bar during candle fetch
-        print((datetime.datetime.now() - date_time_obj))
+        date_time_obj = datetime.strptime(since, '%Y-%m-%d %H:%M:%S')
+        print((datetime.now() - date_time_obj))
 
         # TODO: Since should be optional, or set to a certain timeframe based on if its > a day or < than
         dpg.add_text("Fetching Data", tag=f"{self.exchange}-fetching-text", parent=parent)
@@ -198,7 +212,15 @@ class Charts:
         # TODO: Check if there is saved data for this exchange, symbol, and timeframe: use that data if so
 
 
-        self.OHLCV = asyncio.run(data.fetch_candles(exchange=self.exchange, max_retries=3, symbol=symbol, timeframe=timeframe, since=since, limit=1000, dataframe=False))
+        self.OHLCV = asyncio.run(data.fetch_candles(
+            exchange=self.exchange, 
+            max_retries=3, 
+            symbol=symbol, 
+            timeframe=timeframe, 
+            since=(datetime.now() - timedelta(days = self.fetch_date)).strftime("%Y-%m-%d %H:%M:%S"), 
+            limit=1000, 
+            dataframe=False)
+        )
         chart_tag = f"{self.exchange}-candle-{symbol}-series"
 
         # Storage dictionary for fetched candles
