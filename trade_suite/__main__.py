@@ -50,6 +50,7 @@ class Main(charts):
         Returns:
             dict: Dictionary object containing a structure like below.
         """
+        # TODO: Use "pydanntic" BaseModel to declare the same structure here
         default_settings = {
             "fullscreen":"True",
             "main_window": {

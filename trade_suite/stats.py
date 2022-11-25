@@ -6,26 +6,27 @@ import os
 import yfinance
 import aiohttp
 
-
-COIN_MARKET_CAP_ENDPOINTS = {
-    "category":{
-        "cryptocurrencies":"/cryptocurrency/",
-        "exchange":"/exchange/",
-        "global-metrics":"/global-metrics/",
-        "tools":"/tools/",
-        "blockchain":"/blockchain/",
-        "fiat":"/fiat/",
-        "partners":"/partners/",
-        "key":"/key/",
-        "content":"/content/"    
-    },
-    "endpoint":{
-        "latest":"/latest",
-        "historical":"/historical",
-        "info":"/info",
-        "map":"/map"
+# TODO: Change to dict()
+COIN_MARKET_CAP_ENDPOINTS = dict({
+        "category":{
+            "cryptocurrencies":"/cryptocurrency/",
+            "exchange":"/exchange/",
+            "global-metrics":"/global-metrics/",
+            "tools":"/tools/",
+            "blockchain":"/blockchain/",
+            "fiat":"/fiat/",
+            "partners":"/partners/",
+            "key":"/key/",
+            "content":"/content/"    
+        },
+        "endpoint":{
+            "latest":"/latest",
+            "historical":"/historical",
+            "info":"/info",
+            "map":"/map"
+        }
     }
-}
+)
 
 
 async def fetch_coinmarketcap(limit: str, currency: str, category, endpoint):
@@ -76,42 +77,6 @@ def fetch_coinalyze():
 
 
 def push_stats_panel():
-
-
-    def convert_columns(dataframe):
-        """ The data pulled from coinalyze is formatted like so: $1.5k, $10b, etc. This data needs to be transformed into numerical format
-        so we can do arithmetic on it. 
-
-        Args:
-            dataframe (Dataframe): Coinalyze Dataframe
-        """
-        df = dataframe.copy()
-        df.to_csv("out.csv")
-        sufixes_ = {"":1, "k":1000, "m":1000000, "b":1000000000, "t":1000000000000, "%": 0.01}
-        signs = {"$":1, "+":1, "-":-1}
-        columns = {"Chg 24H":[], "Vol 24H":[], "Open Interest":[], "OI Chg 24H":[], "OI Share":[], "FR AVG":[], "PFR AVG":[], "Liqs. 24H":[]}
-        nums = [str(x) for x in range(10)]
-        for column in columns.keys():
-            for item in df.loc[:, column]:
-                suffix = str(item)[-1]
-                prefix = str(item)[:-1]
-                sign = str(item)[0]
-                if suffix != "n":
-                    number = prefix[1:] if sign not in nums else prefix
-                    answer = float((float(number) * sufixes_[suffix]) if suffix not in nums else (float(number)))
-                    # print(item +  " | ", f"{answer.__round__(4):,}")
-                    if sign in signs:
-                        answer = answer * signs[sign]
-                    columns[column].append(f"{answer.__round__(4):,}")
-                else:
-                    columns[column].append("N/A")
-                    
-        new_df = pd.DataFrame(columns)
-        new_df.insert(0, "Coin", dataframe.loc[:, "Coin"])
-        new_df.insert(1, "Price", dataframe.loc[:, "Price"])
-        new_df.insert(6, "OI / VOL24H", dataframe.loc[:, "OI / VOL24H"])
-        return new_df
-
 
     with open("exchanges/stats/previous_stats.csv", "r"):
         previous_stats = pd.read_csv("exchanges/stats/previous_stats.csv")
