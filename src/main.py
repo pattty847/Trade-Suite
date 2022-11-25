@@ -6,8 +6,8 @@ import time
 import dearpygui.dearpygui as dpg
 import dearpygui.demo as demo
 import ccxt
-from Charts import Charts
-import Stats as stats
+from charts import Charts
+import stats as stats
 import utils.DoStuff as do
 from screeninfo import get_monitors
 

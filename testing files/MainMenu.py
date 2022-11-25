@@ -2,7 +2,7 @@ import json
 import dearpygui.dearpygui as dpg
 import dearpygui.demo as demo
 import utils.DoStuff as do
-from Charts import Charts
+from charts import Charts
 import ccxt
 
 class MainMenu:

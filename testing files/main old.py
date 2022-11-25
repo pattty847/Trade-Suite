@@ -5,8 +5,8 @@ import dearpygui.demo as demo
 
 import utils.DoStuff as do
 from Chart import Chart
-import Trade as trade
-import Stats as stats
+import trade as trade
+import stats as stats
 
 class Program():
 

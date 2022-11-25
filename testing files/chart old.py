@@ -5,7 +5,7 @@ import dearpygui.dearpygui as dpg
 import utils.DoStuff as do
 import ccxt as ccxt
 import os
-import Strategies as strat
+import strategies as strat
 
 
 

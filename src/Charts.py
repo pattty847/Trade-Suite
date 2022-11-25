@@ -9,9 +9,9 @@ import dearpygui.dearpygui as dpg
 import utils.DoStuff as do
 import pandas as pd
 import pandas_ta as ta
-import Data as data
-import Trade as trade
-import Indicators as indicators
+import data as data
+import trade as trade
+import indicators as indicators
 
 class Charts:
 
