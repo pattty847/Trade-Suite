@@ -2,16 +2,15 @@ import asyncio
 import datetime
 import json
 import os
-from datetime import datetime, timedelta
 import threading
 import time
 import dearpygui.dearpygui as dpg
 import utils.DoStuff as do
 import pandas as pd
-import pandas_ta as ta
 import data as data
 import trade as trade
 import indicators as indicators
+from datetime import datetime, timedelta
 
 class Charts:
 
