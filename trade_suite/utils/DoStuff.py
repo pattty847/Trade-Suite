@@ -4,7 +4,6 @@ import pandas_ta as pta
 import numpy as np
 import dearpygui.dearpygui as dpg
 import schedule
-
 from statsmodels.tsa.stattools import coint, adfuller
 
 def update_settings(settings, update):

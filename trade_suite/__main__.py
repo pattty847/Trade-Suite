@@ -6,12 +6,12 @@ import time
 import dearpygui.dearpygui as dpg
 import dearpygui.demo as demo
 import ccxt
-from charts import Charts
-import stats as stats
-import utils.DoStuff as do
+from trade_suite import stats
+from trade_suite import charts
+import trade_suite.utils.DoStuff as do
 from screeninfo import get_monitors
 
-class Main(Charts):
+class Main(charts):
 
     def __init__(self):
         # DPG tags for items

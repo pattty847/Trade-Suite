@@ -31,11 +31,13 @@ COIN_MARKET_CAP_ENDPOINTS = {
 async def fetch_coinmarketcap(limit: str, currency: str, category, endpoint):
     API_KEY = "31c20493-3635-494b-852a-904ffb636906"
     URL = f'https://sandbox-api.coinmarketcap.com/v1/{category}/listings/{endpoint}'
+    # TODO: Fix params to dict()
     PARAMS = {
         'start':'1',
         'limit':limit,
         'convert':currency
     }
+    # TODO: Fix headers to dict()
     HEADERS = {
         'Accepts': 'application/json',
         'X-CMC_PRO_API_KEY': API_KEY,

@@ -4,12 +4,12 @@ import json
 import os
 import threading
 import time
-import dearpygui.dearpygui as dpg
-import utils.DoStuff as do
 import pandas as pd
 import data as data
 import trade as trade
-import indicators as indicators
+import dearpygui.dearpygui as dpg
+import trade_suite.utils.DoStuff as do
+from trade_suite import indicators
 from datetime import datetime, timedelta
 
 class Charts:
