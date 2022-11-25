@@ -3,6 +3,8 @@ import datetime
 import json
 import os
 from datetime import datetime, timedelta
+import threading
+import time
 import dearpygui.dearpygui as dpg
 import utils.DoStuff as do
 import pandas as pd
@@ -52,6 +54,7 @@ class Charts:
         self.last_chart = None # temp storage of last symbol so we can delete that chart when adding a new one
         self.OHLCV = None
         self.fetch_date = 180
+        self.active_charts = []
         
         self.init_window() # Create a window for this exchange
         self.draw_charts_menu_nav_bar() # Draws the main navigation bar which waits for input to open a chart
@@ -89,7 +92,7 @@ class Charts:
                 os.makedirs(f"exchanges/candles/{self.exchange}")
             pd.DataFrame(self.OHLCV).to_csv(FILE, index=False, header=False)
 
-        with dpg.window(label="Data Saved", modal=True, pos=(self.viewport_width/2, self.viewport_height/2)):
+        with dpg.window(label="Data Saved", width=200, height=200, modal=True, pos=(self.viewport_width/2 - 200/2, self.viewport_height/2 - 200/2)):
             dpg.add_text(f"{self.symbol}-{self.timeframe} successfully saved.")
 
 
@@ -154,8 +157,13 @@ class Charts:
 
             dpg.add_menu_item(label="+", callback=self.push_chart)
 
-            with dpg.menu(label="Fetch Date"):
+            with dpg.menu(label="Fetch Date", tag="fetch-date-menu"):
                 dpg.add_slider_float(label="Days Ago", max_value=100.0, height=160, width=150, callback=self.set_fetch_date, format="%.2f")
+
+            with dpg.tooltip("fetch-date-menu"):
+                    dpg.add_text(
+                        """Use this slider to pick how many days of history to fetch. \nTypical Days for Timeframes: \nMinute - 5d \nHour - 15d"""
+                    )
 
             dpg.add_menu_item(label="Trade", callback=self.trade_panel)
             dpg.add_menu_item(label="Indicators", callback=self.push_indicator_panel)
@@ -177,15 +185,13 @@ class Charts:
             parent=self.exchange
         )
 
-    # def update_charts(self, **charts):
-    #     active_charts = []
-    #     active_charts.append(charts['id'])
-    #     i = 0.0
-    #     while True:
-    #         for chart in active_charts:
-    #             dpg.configure_item(chart, closes=i)
-    #             i+=1
-    #             time.sleep(.5)
+    def update_charts(self, update: float = 0.2, **charts: dict):
+        self.active_charts.append(charts['id'])
+        while True:
+            for chart in self.active_charts:
+                dpg.configure_item(chart, closes=self.OHLCV['close'])
+                self.OHLCV['close'][-1] += 10.0
+                time.sleep(update)
 
 
     def draw_chart(self, symbol, timeframe, parent, since = "2022-01-01 00:00:00"):
@@ -221,7 +227,7 @@ class Charts:
             limit=1000, 
             dataframe=False)
         )
-        chart_tag = f"{self.exchange}-candle-{symbol}-series"
+        chart_tag = f"{self.exchange}-candle-series-{symbol}"
 
         # Storage dictionary for fetched candles
         ohlcv = {"time":[], "open":[], "high":[], "low":[], "close":[], "volume":[]}
@@ -232,6 +238,7 @@ class Charts:
             ohlcv['low'].append(float(row[3]))
             ohlcv['close'].append(float(row[4]))
             ohlcv['volume'].append(float(row[5]))
+        self.OHLCV = ohlcv
         
         # Error handling for symbol not found.
         if self.OHLCV is None:
@@ -277,7 +284,7 @@ class Charts:
                         ohlcv['open'], 
                         ohlcv['close'], 
                         ohlcv['low'], 
-                        ohlcv['high'], 
+                        ohlcv['high'],
                         tag=chart_tag,
                         time_unit=do.convert_timeframe(timeframe)
                     )
@@ -298,5 +305,5 @@ class Charts:
                     dpg.fit_axis_data(dpg.top_container_stack())
                     dpg.fit_axis_data(xaxis_vol)
 
-        # x = threading.Thread(target=self.update_charts, kwargs={"id":chart_tag})
-        # x.start()
+        x = threading.Thread(target=self.update_charts, kwargs={"id":chart_tag})
+        x.start()

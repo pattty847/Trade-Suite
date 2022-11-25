@@ -121,10 +121,8 @@ async def fetch_candles(exchange: str, max_retries:int, symbol: str, timeframe: 
     return all_ohlcv if not dataframe else pd.DataFrame(all_ohlcv)
 
 
-# files = os.listdir("exchanges/candles/binance")
-# for file in files:
-#     if "te" in file and "1"in file:
-#         print(file)
+def create_market_profile(candles):
+    pass
 
 
 
