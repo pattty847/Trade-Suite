@@ -1,6 +1,6 @@
 import json
 import dearpygui.dearpygui as dpg
-import utils.DoStuff as do
+import trade_suite.utils.DoStuff as do
 import pandas as pd
 import os
 import yfinance

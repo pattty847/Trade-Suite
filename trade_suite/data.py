@@ -9,6 +9,36 @@ import ccxt
 import dearpygui.dearpygui as dpg
 import pandas as pd
 
+# TODO: 
+"""
+trade_suite/data.py line 59:
+
+Also recommendation to use from pathlib import Path for path resolving everywhere
+https://docs.python.org/3/library/pathlib.html
+makes them cross platform and more feature rich
+
+
+trade_suite/data.py line 178:
+Nesting hell!
+you should decrease nesting hell xD
+Try to fight with guard clauses https://betterprogramming.pub/refactoring-guard-clauses-2ceeaa1a9da
+
+
+avoid getaattr of loading stuff from libraries.
+I will prefer seeing some way that will allow my IDE scanning inside of library automatically 
+(for help information of a used class/function through right mouse click See Definition)
+
+
+Stats.py line 120
+install black library and launch on all your code
+black src
+to fix formatting 
+with dpg.window(label="Crypto Stats", tag="stats-window", width=800, height=1000, pos=[15, 60], on_close = lambda sender: dpg.delete_item(sender)):
+
+
+
+"""
+
 msec = 1000
 minute = 60 * msec
 hold = 30
@@ -24,7 +54,7 @@ async def retry_fetch_candles(api, max_retries:int, symbol: str, timeframe: str,
             print(e)
         # print('Fetched', len(ohlcv), symbol, 'candles from', api.iso8601 (ohlcv[0][0]), 'to', api.iso8601 (ohlcv[-1][0]))
         return ohlcv
-    except Exception:
+    except Exception as e:
         if num_retries > max_retries:
             raise  # Exception('Failed to fetch', timeframe, symbol, 'OHLCV in', max_retries, 'attempts')
 
@@ -119,11 +149,6 @@ async def fetch_candles(exchange: str, max_retries:int, symbol: str, timeframe: 
     # start_thread(exchange, symbol, timeframe, candles, chart_tag)
     await api.close()
     return all_ohlcv if not dataframe else pd.DataFrame(all_ohlcv)
-
-
-def create_market_profile(candles):
-    pass
-
 
 
 async def fetch_latest_candles(candles, exchange, symbol, timeframe):

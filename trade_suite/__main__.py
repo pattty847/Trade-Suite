@@ -94,8 +94,11 @@ class Main(charts):
             ccxt exchange, JSON: Returns the ccxt object and a dict containing all the markets.
         """
         if exchange in self.config['exchanges'].keys() and self.config['exchanges']['mode'] != "sandbox":
-            api = getattr(ccxt, exchange) (
+            # TODO: Change getattr() where ever possible to:
+            # api = ccxt.exchange({"id":exchange})
+            api = ccxt.exchange(
                 {
+                    "id":exchange,
                     "apiKey":self.config['exchanges'][exchange]['apiKey'],
                     "secret":self.config['exchanges'][exchange]['secret']
                 }
@@ -152,7 +155,7 @@ class Main(charts):
             # If the market returned markets and has fetchOHLCV abilities. 
             if markets:
                 dpg.delete_item("main-loading")
-                user_data = Charts(
+                user_data = charts(
                     exchange= user_data,
                     symbol=None,
                     timeframe=None,
