@@ -13,7 +13,7 @@ from screeninfo import get_monitors
 
 class Main(Charts):
 
-    def __init__(self) -> None:
+    def __init__(self):
         # DPG tags for items
         self.MAIN_WINDOW = "main"
         self.CHART_WINDOW = "chart"

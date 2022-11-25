@@ -2,6 +2,8 @@ from asyncio import gather
 import asyncio
 import datetime
 import os
+import threading
+import time
 import ccxt.async_support as ccas
 import ccxt
 import dearpygui.dearpygui as dpg
@@ -27,39 +29,71 @@ async def retry_fetch_candles(api, max_retries:int, symbol: str, timeframe: str,
             raise  # Exception('Failed to fetch', timeframe, symbol, 'OHLCV in', max_retries, 'attempts')
 
 
+active_charts = []
+def update_charts(charts):
+    active_charts.append(charts['id'])
+    i = 0
+    while True:
+        for chart in active_charts:
+            dpg.configure_item(chart, close=i)
+            i+=1
+            time.sleep(.5)
+
+
+def get_old_candles(files, exchange, symbol, timeframe):
+    try:
+        for file in files:
+            if symbol in file and timeframe in file:
+                return pd.read_csv(f"exchanges/candles/{exchange}/{symbol}-{timeframe}.csv")
+    except FileNotFoundError as e:
+        return None
+
+
+
 async def fetch_candles(exchange: str, max_retries:int, symbol: str, timeframe: str, since: str, limit: int, dataframe: bool):
     # TODO: Add to this function a way check if there exists a file for this exchange, symbol, timeframe and if so,
     # update the fetch since to the last timeframe in the file, update the file, and then return all_ohlcv
+    files = os.listdir(f"exchanges/candles/{exchange}")
 
-    exchange = getattr(ccas, exchange)()
+    api = getattr(ccas, exchange)()
 
-    timeframe_duration_in_seconds = exchange.parse_timeframe(timeframe)
+    timeframe_duration_in_seconds = api.parse_timeframe(timeframe)
     timeframe_duration_in_ms = timeframe_duration_in_seconds * 1000
     timedelta = limit * timeframe_duration_in_ms
-    
-    # This will always be the current time unless updating OLD candles using the TO var where TO is first_pull_time in CSV file
-    now = exchange.milliseconds()
-    all_ohlcv = []
-    fetch_since = exchange.parse8601(since)
 
+    all_ohlcv = []
+    old_ohlcv = get_old_candles(files, exchange, symbol, timeframe)
+    last_pull_time = old_ohlcv.iat[-1, 0] # last stored time
+
+    now = api.milliseconds()
+    fetch_since = api.parse8601(since)
     
     while fetch_since < now:
         
-        ohlcv = await retry_fetch_candles(exchange, max_retries, symbol, timeframe, fetch_since, limit)
+        ohlcv = await retry_fetch_candles(api, max_retries, symbol, timeframe, fetch_since, limit)
         if ohlcv is None:
-            await exchange.close()
+            await api.close()
             return None
         fetch_since = (ohlcv[-1][0] + 1) if len(ohlcv) else (fetch_since + timedelta)
         all_ohlcv = all_ohlcv + ohlcv
         
         if len(all_ohlcv):
-            print(len(all_ohlcv), 'candles in total from', exchange.iso8601(all_ohlcv[0][0]), 'to', exchange.iso8601(all_ohlcv[-1][0]))
+            print(len(all_ohlcv), 'candles in total from', api.iso8601(all_ohlcv[0][0]), 'to', api.iso8601(all_ohlcv[-1][0]))
         
         else:
-            print(len(all_ohlcv), 'candles in total from', exchange.iso8601(fetch_since))
+            print(len(all_ohlcv), 'candles in total from', api.iso8601(fetch_since))
+
+    # if old_ohlcv is not None concat the new candles and old, append the new candles to the file, and return the new concatinated results
+
             
-    await exchange.close()
+    await api.close()
     return all_ohlcv if not dataframe else pd.DataFrame(all_ohlcv)
+
+
+# files = os.listdir("exchanges/candles/binance")
+# for file in files:
+#     if "te" in file and "1"in file:
+#         print(file)
 
 
 

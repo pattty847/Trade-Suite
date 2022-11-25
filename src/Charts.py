@@ -3,6 +3,8 @@ import datetime
 import json
 import os
 import sys
+import threading
+import time
 import dearpygui.dearpygui as dpg
 import utils.DoStuff as do
 import pandas as pd
@@ -78,7 +80,7 @@ class Charts:
 
     def save_candle_data(self):
         PATH = f"exchanges/candles/{self.exchange}"
-        FILE = f"{PATH}/{self.symbol.replace('/', '')}-{self.timeframe}.csv"
+        FILE = f"{PATH}/{self.symbol.replace('/', '_')}-{self.timeframe}.csv"
 
         if os.path.exists(FILE):
             pd.DataFrame(self.OHLCV).to_csv(FILE, mode="a", index=False, header=False)
@@ -160,6 +162,16 @@ class Charts:
             parent=self.exchange
         )
 
+    # def update_charts(self, **charts):
+    #     active_charts = []
+    #     active_charts.append(charts['id'])
+    #     i = 0.0
+    #     while True:
+    #         for chart in active_charts:
+    #             dpg.configure_item(chart, closes=i)
+    #             i+=1
+    #             time.sleep(.5)
+
 
     def draw_chart(self, symbol, timeframe, parent, since = "2022-01-01 00:00:00"):
         """ Function which is called to draw a chart to a window tagged as the exchange name. Only one chart / exchange right now, many 
@@ -187,6 +199,7 @@ class Charts:
 
 
         self.OHLCV = asyncio.run(data.fetch_candles(exchange=self.exchange, max_retries=3, symbol=symbol, timeframe=timeframe, since=since, limit=1000, dataframe=False))
+        chart_tag = f"{self.exchange}-candle-{symbol}-series"
 
         # Storage dictionary for fetched candles
         ohlcv = {"time":[], "open":[], "high":[], "low":[], "close":[], "volume":[]}
@@ -243,7 +256,7 @@ class Charts:
                         ohlcv['close'], 
                         ohlcv['low'], 
                         ohlcv['high'], 
-                        tag=f"{self.exchange}-candle-{symbol}-series", 
+                        tag=chart_tag,
                         time_unit=do.convert_timeframe(timeframe)
                     )
                     
@@ -262,3 +275,6 @@ class Charts:
                     
                     dpg.fit_axis_data(dpg.top_container_stack())
                     dpg.fit_axis_data(xaxis_vol)
+
+        # x = threading.Thread(target=self.update_charts, kwargs={"id":chart_tag})
+        # x.start()
