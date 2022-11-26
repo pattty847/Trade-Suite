@@ -8,6 +8,8 @@ import dearpygui.demo as demo
 import ccxt
 import utils.DoStuff as do
 import stats
+import settings.config as config
+from settings.config import DefaultSettings as config
 from charts import Charts
 from screeninfo import get_monitors
 
@@ -50,7 +52,25 @@ class Main(Charts):
         Returns:
             dict: Dictionary object containing a structure like below.
         """
-        # TODO: Use "pydanntic" BaseModel to declare the same structure here
+
+        # TODO (under construction): Using "pydanntic" BaseModel to declare the same default_settings structure here
+        settings = config(
+            fullscreen=True, 
+            main_window={"primary_window_width": 1600},
+            last_chart={"binance":["BTCUSDT", "1d"]},
+            exchanges={
+                "mode": "sandbox",
+                "binance": {
+                    "apiKey": "",
+                    "secret": ""
+                },
+                "kucoin": {
+                    "apiKey": "",
+                    "secret": ""
+                }
+            }
+        )
+
         default_settings = {
             "fullscreen":"True",
             "main_window": {
@@ -94,9 +114,7 @@ class Main(Charts):
             ccxt exchange, JSON: Returns the ccxt object and a dict containing all the markets.
         """
         if exchange in self.config['exchanges'].keys() and self.config['exchanges']['mode'] != "sandbox":
-            # TODO: Change getattr() where ever possible to:
-            # api = ccxt.exchange({"id":exchange})
-            api = ccxt.exchange(
+            api = getattr(ccxt, exchange) (
                 {
                     "id":exchange,
                     "apiKey":self.config['exchanges'][exchange]['apiKey'],
@@ -202,8 +220,10 @@ class Main(Charts):
         self.config.update({"fullscreen":"False"}) if self.config['fullscreen'] == "True" else self.config.update({"fullscreen":"True"})
         print(self.config['fullscreen'])
 
+
     def market_stats_panel(self, sender, app_data, user_data):
         stats.push_stats_panel()
+
 
     def clock(self):
         i = 0

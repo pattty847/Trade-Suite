@@ -1,4 +1,5 @@
 ccxt
+ccxtpro
 pandas
 pandas_ta
 dearpygui

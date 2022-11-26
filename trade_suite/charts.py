@@ -10,6 +10,8 @@ import trade as trade
 import dearpygui.dearpygui as dpg
 import utils.DoStuff as do
 import indicators
+import ccxt.pro as ccxtpro
+from asyncio import run
 from datetime import datetime, timedelta
 
 class Charts:
@@ -184,13 +186,24 @@ class Charts:
             parent=self.exchange
         )
 
-    def update_charts(self, update: float = 0.2, **charts: dict):
-        self.active_charts.append(charts['id'])
+    
+    async def start_live_chart(self, **kwargs):
+        exchange = ccxtpro.binance({'newUpdates': False})
         while True:
-            for chart in self.active_charts:
-                dpg.configure_item(chart, closes=self.OHLCV['close'])
-                self.OHLCV['close'][-1] += 10.0
-                time.sleep(update)
+            orderbook = await exchange.watch_order_book(kwargs['symbol'])
+            dpg.configure_item(kwargs['id'], closes=self.OHLCV['close'])
+            self.OHLCV['close'][-1] = (orderbook['asks'][0][0] + orderbook['bids'][0][0]) / 2
+            print(orderbook['asks'][0], orderbook['bids'][0])
+        
+        await exchange.close()
+
+
+    def between_callback(self, **kwargs):
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+
+        loop.run_until_complete(self.start_live_chart(**kwargs))
+        loop.close()
 
 
     def draw_chart(self, symbol, timeframe, parent, since = "2022-01-01 00:00:00"):
@@ -204,20 +217,20 @@ class Charts:
             since (str, optional): _description_. Defaults to "2022-10-01 00:00:00".
         """
         
+        # TODO: Add progress bar here for loading candles
         # Using this section to determine # of candles that will be returned for a progress bar during candle fetch
         date_time_obj = datetime.strptime(since, '%Y-%m-%d %H:%M:%S')
         print((datetime.now() - date_time_obj))
 
-        # TODO: Since should be optional, or set to a certain timeframe based on if its > a day or < than
         dpg.add_text("Fetching Data", tag=f"{self.exchange}-fetching-text", parent=parent)
         dpg.add_loading_indicator(parent=parent, tag=f"{self.exchange}-loading", pos=[self.viewport_width/2, self.viewport_height/2 - 110], radius=10.0, style=1)
 
+        # TODO: This is used until I've found a way to have multiple child charts/windows for multiple symbols of the same exchange
+        # For now we remove the last chart
         dpg.delete_item(self.last_chart)
 
-        # TODO: Check if there is saved data for this exchange, symbol, and timeframe: use that data if so
 
-
-        self.OHLCV = asyncio.run(data.fetch_candles(
+        candles = asyncio.run(data.fetch_candles(
             exchange=self.exchange, 
             max_retries=3, 
             symbol=symbol, 
@@ -230,13 +243,14 @@ class Charts:
 
         # Storage dictionary for fetched candles
         ohlcv = {"time":[], "open":[], "high":[], "low":[], "close":[], "volume":[]}
-        for row in self.OHLCV:
+        for row in candles:
             ohlcv['time'].append(row[0]/1000)
             ohlcv['open'].append(float(row[1]))
             ohlcv['high'].append(float(row[2]))
             ohlcv['low'].append(float(row[3]))
             ohlcv['close'].append(float(row[4]))
             ohlcv['volume'].append(float(row[5]))
+
         self.OHLCV = ohlcv
         
         # Error handling for symbol not found.
@@ -304,5 +318,6 @@ class Charts:
                     dpg.fit_axis_data(dpg.top_container_stack())
                     dpg.fit_axis_data(xaxis_vol)
 
-        x = threading.Thread(target=self.update_charts, kwargs={"id":chart_tag})
+        x = threading.Thread(target=self.between_callback, kwargs={"id":chart_tag, "symbol":symbol})
         x.start()
+        # run(self.main('binance', 'BTC/USDT'))

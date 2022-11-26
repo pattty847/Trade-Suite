@@ -57,8 +57,6 @@ def write_to_file(data, file: str):
         json.dump(data, f)
 
 
-# write_to_file(asyncio.run(fetch_coinmarketcap("100", "USD")), "coinmarketcap.csv")
-
 def fetch_coinalyze():
     URL = 'https://coinalyze.net/'
     columns = ["Coin", "Price", "Chg 24H", "Vol 24H", "Open Interest", "OI Chg 24H", "OI Share", "OI / VOL24H", "FR AVG", "PFR AVG", "Liqs. 24H"]
