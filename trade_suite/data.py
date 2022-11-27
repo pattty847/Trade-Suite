@@ -28,21 +28,11 @@ async def retry_fetch_candles(api, max_retries:int, symbol: str, timeframe: str,
         if num_retries > max_retries:
             return None
 
-    
-
-async def update_charts(self, update: float = 0.2, **charts: dict):
-    self.active_charts.append(charts['id'])
-    while True:
-        for chart in self.active_charts:
-            dpg.configure_item(chart, closes=self.OHLCV['close'])
-            self.OHLCV['close'][-1] += 10.0
-            time.sleep(update)
 
 
 async def fetch_candles(exchange: str, max_retries:int, symbol: str, timeframe: str, since: str, limit: int, dataframe: bool):
     """ This function is called to fetch candlestick data from storage and the newest since the last saved date. It will return a list or dataframe
     of the candles.
-
     Args:
         exchange (str): Exchange name
         max_retries (int): Number of times to try fetching candles if failure occured
@@ -51,7 +41,6 @@ async def fetch_candles(exchange: str, max_retries:int, symbol: str, timeframe: 
         since (str): UTC timestamp
         limit (int): Number of candles to fetch per batch (max: 1000)
         dataframe (bool): True to return data as dataframe, false for list
-
     Returns:
         _type_: _description_
     """
