@@ -113,6 +113,9 @@ class Main(Charts):
         Returns:
             ccxt exchange, JSON: Returns the ccxt object and a dict containing all the markets.
         """
+
+        #############################################################################################################
+        # This section will create a CCXT EXCHANGE obj for the exchange passed as a parameter.
         if exchange in self.config['exchanges'].keys() and self.config['exchanges']['mode'] != "sandbox":
             api = getattr(ccxt, exchange) (
                 {
@@ -127,13 +130,20 @@ class Main(Charts):
             print(f"Exchange: [{exchange}] | Trading: No")
             api = getattr(ccxt, exchange) ()
 
+        #############################################################################################################
+
+        # This section will check for the market information in this folder
         if not os.path.isdir("exchanges/markets"):
             os.makedirs("exchanges/markets")
 
 
+        # If the exchange does not offer candlesticks, we cannot use this exchange. Return none.
         if api.has['fetchOHLCV'] != True:
             print("This exchange does not offer candlestick data.")
             return None
+
+        # If we do have fetch candlestick, check if we have the market info for the exchange on file and if not
+        # fetch the data and store it as "exchanges/markets/{exchange}-markets.json"
         try:
             with open(f"exchanges/markets/{exchange}-markets.json") as f:
                 markets =  json.load(f)
@@ -298,7 +308,7 @@ class Main(Charts):
         """
 
         # If the user turns on fullscreen, we set the viewport windows to the resolution of the screen.
-        self.isFullscreen()
+        self.primary_window_width, self.primary_window_height = do.isFullscreen(self.config)
         
         dpg.create_context()
 
@@ -350,23 +360,6 @@ class Main(Charts):
         with open("config.json", "w") as f:
             json.dump(self.config, f)
         dpg.destroy_context()
-
-
-    def isFullscreen(self):
-        from screeninfo import get_monitors
-        def get_monitor_size():
-            monitors = get_monitors()
-            for m in monitors:
-                if m.is_primary:
-                    monitors = m
-            main_monitor = {"width":monitors.width, "height":monitors.height}
-            return main_monitor
-
-        monitor = get_monitor_size()
-
-        if self.config['fullscreen'] == "True":
-            self.primary_window_width = monitor["width"]
-            self.primary_window_height = monitor["height"]
 
 
 if __name__ == "__main__":

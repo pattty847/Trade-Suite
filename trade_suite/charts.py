@@ -186,24 +186,27 @@ class Charts:
             parent=self.exchange
         )
 
-    
-    async def start_live_chart(self, **kwargs):
-        exchange = ccxtpro.binance({'newUpdates': False})
-        while True:
-            orderbook = await exchange.watch_order_book(kwargs['symbol'])
-            dpg.configure_item(kwargs['id'], closes=self.OHLCV['close'])
-            self.OHLCV['close'][-1] = (orderbook['asks'][0][0] + orderbook['bids'][0][0]) / 2
-            print(orderbook['asks'][0], orderbook['bids'][0])
+    ############################################# Under Construction #####################################################
+
+    # async def start_live_chart(self, **kwargs):
+    #     exchange = ccxtpro.binance({'newUpdates': False})
+    #     while True:
+    #         orderbook = await exchange.watch_order_book(kwargs['symbol'])
+    #         dpg.configure_item(kwargs['id'], closes=self.OHLCV['close'])
+    #         self.OHLCV['close'][-1] = (orderbook['asks'][0][0] + orderbook['bids'][0][0]) / 2
+    #         print(orderbook['asks'][0], orderbook['bids'][0])
         
-        await exchange.close()
+    #     await exchange.close()
 
 
-    def between_callback(self, **kwargs):
-        loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(loop)
+    # def between_callback(self, **kwargs):
+    #     loop = asyncio.new_event_loop()
+    #     asyncio.set_event_loop(loop)
 
-        loop.run_until_complete(self.start_live_chart(**kwargs))
-        loop.close()
+    #     loop.run_until_complete(self.start_live_chart(**kwargs))
+    #     loop.close()
+
+    #######################################################################################################################
 
 
     def draw_chart(self, symbol, timeframe, parent, since = "2022-01-01 00:00:00"):
@@ -230,7 +233,7 @@ class Charts:
         dpg.delete_item(self.last_chart)
 
 
-        candles = asyncio.run(data.fetch_candles(
+        self.OHLCV = asyncio.run(data.fetch_candles(
             exchange=self.exchange, 
             max_retries=3, 
             symbol=symbol, 
@@ -241,17 +244,6 @@ class Charts:
         )
         chart_tag = f"{self.exchange}-candle-series-{symbol}"
 
-        # Storage dictionary for fetched candles
-        ohlcv = {"time":[], "open":[], "high":[], "low":[], "close":[], "volume":[]}
-        for row in candles:
-            ohlcv['time'].append(row[0]/1000)
-            ohlcv['open'].append(float(row[1]))
-            ohlcv['high'].append(float(row[2]))
-            ohlcv['low'].append(float(row[3]))
-            ohlcv['close'].append(float(row[4]))
-            ohlcv['volume'].append(float(row[5]))
-
-        self.OHLCV = ohlcv
         
         # Error handling for symbol not found.
         if self.OHLCV is None:
@@ -293,11 +285,11 @@ class Charts:
                 with dpg.plot_axis(dpg.mvYAxis, label="USD"):
 
                     dpg.add_candle_series(
-                        ohlcv['time'], 
-                        ohlcv['open'], 
-                        ohlcv['close'], 
-                        ohlcv['low'], 
-                        ohlcv['high'],
+                        self.OHLCV['time'], 
+                        self.OHLCV['open'], 
+                        self.OHLCV['close'], 
+                        self.OHLCV['low'], 
+                        self.OHLCV['high'],
                         tag=chart_tag,
                         time_unit=do.convert_timeframe(timeframe)
                     )
@@ -313,11 +305,14 @@ class Charts:
 
                 with dpg.plot_axis(dpg.mvYAxis, label="USD"):
 
-                    dpg.add_bar_series(ohlcv['time'], ohlcv['volume'])
+                    dpg.add_bar_series(self.OHLCV['time'], self.OHLCV['volume'])
                     
                     dpg.fit_axis_data(dpg.top_container_stack())
                     dpg.fit_axis_data(xaxis_vol)
 
-        x = threading.Thread(target=self.between_callback, kwargs={"id":chart_tag, "symbol":symbol})
-        x.start()
+
+        ############################################# Under Construction #####################################################
+
+        # x = threading.Thread(target=self.between_callback, kwargs={"id":chart_tag, "symbol":symbol})
+        # x.start()
         # run(self.main('binance', 'BTC/USDT'))

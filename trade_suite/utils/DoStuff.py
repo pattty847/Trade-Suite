@@ -6,6 +6,20 @@ import dearpygui.dearpygui as dpg
 import schedule
 from statsmodels.tsa.stattools import coint, adfuller
 
+def isFullscreen(config):
+    from screeninfo import get_monitors
+    def get_monitor_size():
+        monitors = get_monitors()
+        for m in monitors:
+            if m.is_primary:
+                monitors = m
+        main_monitor = {"width":monitors.width, "height":monitors.height}
+        return main_monitor
+
+    monitor = get_monitor_size()
+
+    return monitor["width"], monitor["height"]
+
 def update_settings(settings, update):
     settings.update(update)
     with open("settings.json", "w") as jsonFile:

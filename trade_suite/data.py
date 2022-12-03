@@ -1,6 +1,7 @@
+import os
 from pathlib import Path
 import threading
-import time
+from utils.Timer import Timer
 import ccxt.async_support as ccas
 import ccxt
 import pandas as pd
@@ -8,11 +9,8 @@ import ccxt.pro as ccxtpro
 from asyncio import run
 import asyncio
 import dearpygui.dearpygui as dpg
+import csv
 
-
-msec = 1000
-minute = 60 * msec
-hold = 30
 
 
 async def retry_fetch_candles(api, max_retries:int, symbol: str, timeframe: str, since: str, limit: int):
@@ -42,20 +40,9 @@ async def fetch_candles(exchange: str, max_retries:int, symbol: str, timeframe: 
         limit (int): Number of candles to fetch per batch (max: 1000)
         dataframe (bool): True to return data as dataframe, false for list
     Returns:
-        _type_: _description_
+        list: Returns a list of time, open, high, low, close, volume
     """
 
-    # TODO: Add to this function a way check if there exists a file for this exchange, symbol, timeframe and if so,
-    # update the fetch since to the last timeframe in the file, update the file, and then return all_ohlcv
-    # PATH = Path(f"exchanges/candles/{exchange}/{symbol}-{timeframe}.csv")
-    # old_ohlcv = None
-    # if PATH.exists():
-    #     files = [x for x in PATH.iterdir()]
-    #     for f in files:
-    #         old_ohlcv = pd.read_csv(f)
-
-    # CCXT exchange object
-    # TODO: Instead of getattr() use ccxt.<exchange> name
     api = getattr(ccas, exchange)()
 
     timeframe_duration_in_seconds = api.parse_timeframe(timeframe)
@@ -63,6 +50,12 @@ async def fetch_candles(exchange: str, max_retries:int, symbol: str, timeframe: 
     timedelta = limit * timeframe_duration_in_ms
 
     all_ohlcv = []
+    old_ohlcv = []
+    last_time = None
+
+    if os.path.exists(f"exchanges/candles/{exchange}/{symbol}-{timeframe}.csv"):
+        old_ohlcv = pd.read_csv(f"exchanges/candles/{exchange}/{symbol}-{timeframe}.csv")
+
 
     now = api.milliseconds()
     fetch_since = api.parse8601(since)
@@ -70,9 +63,11 @@ async def fetch_candles(exchange: str, max_retries:int, symbol: str, timeframe: 
     while fetch_since < now:
         
         ohlcv = await retry_fetch_candles(api, max_retries, symbol, timeframe, fetch_since, limit)
+        
         if ohlcv is None:
             await api.close()
             return None
+        
         fetch_since = (ohlcv[-1][0] + 1) if len(ohlcv) else (fetch_since + timedelta)
         all_ohlcv = all_ohlcv + ohlcv
         
@@ -82,11 +77,36 @@ async def fetch_candles(exchange: str, max_retries:int, symbol: str, timeframe: 
         else:
             print(len(all_ohlcv), 'candles in total from', api.iso8601(fetch_since))
 
-    # if old_ohlcv is not None concat the new candles and old, append the new candles to the file, and return the new concatinated results
+    candles = {"time":[], "open":[], "high":[], "low":[], "close":[], "volume":[]}
+    for row in ohlcv:
+        ohlcv['time'].append(row[0]/1000)
+        ohlcv['open'].append(float(row[1]))
+        ohlcv['high'].append(float(row[2]))
+        ohlcv['low'].append(float(row[3]))
+        ohlcv['close'].append(float(row[4]))
+        ohlcv['volume'].append(float(row[5]))
 
-    # start_thread(exchange, symbol, timeframe, candles, chart_tag)
+
     await api.close()
-    return all_ohlcv if not dataframe else pd.DataFrame(all_ohlcv)
+    return candles if not dataframe else pd.DataFrame(candles)
+
+
+# t = Timer("Asyncio Fetch")
+
+# t.start()
+
+# d = asyncio.get_event_loop().run_until_complete(fetch_candles(
+#         exchange="coinbasepro", 
+#         max_retries=3, 
+#         symbol="BTC/USDT", 
+#         timeframe="1d", 
+#         since="2022-10-10 00:00:00", 
+#         limit=1000, 
+#         dataframe=True
+#     )
+# )
+
+# t.stop()
 
 
 async def fetch_latest_candles(candles, exchange, symbol, timeframe):
