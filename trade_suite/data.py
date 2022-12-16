@@ -78,13 +78,13 @@ async def fetch_candles(exchange: str, max_retries:int, symbol: str, timeframe: 
             print(len(all_ohlcv), 'candles in total from', api.iso8601(fetch_since))
 
     candles = {"time":[], "open":[], "high":[], "low":[], "close":[], "volume":[]}
-    for row in ohlcv:
-        ohlcv['time'].append(row[0]/1000)
-        ohlcv['open'].append(float(row[1]))
-        ohlcv['high'].append(float(row[2]))
-        ohlcv['low'].append(float(row[3]))
-        ohlcv['close'].append(float(row[4]))
-        ohlcv['volume'].append(float(row[5]))
+    for row in all_ohlcv:
+        candles['time'].append(row[0]/1000)
+        candles['open'].append(float(row[1]))
+        candles['high'].append(float(row[2]))
+        candles['low'].append(float(row[3]))
+        candles['close'].append(float(row[4]))
+        candles['volume'].append(float(row[5]))
 
 
     await api.close()

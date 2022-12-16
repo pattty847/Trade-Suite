@@ -53,24 +53,6 @@ class Main(Charts):
             dict: Dictionary object containing a structure like below.
         """
 
-        # TODO (under construction): Using "pydanntic" BaseModel to declare the same default_settings structure here
-        settings = config(
-            fullscreen=True, 
-            main_window={"primary_window_width": 1600},
-            last_chart={"binance":["BTCUSDT", "1d"]},
-            exchanges={
-                "mode": "sandbox",
-                "binance": {
-                    "apiKey": "",
-                    "secret": ""
-                },
-                "kucoin": {
-                    "apiKey": "",
-                    "secret": ""
-                }
-            }
-        )
-
         default_settings = {
             "fullscreen":"True",
             "main_window": {
@@ -95,7 +77,7 @@ class Main(Charts):
         try:
             with open("config.json", "r") as f:
                 return json.load(f)
-        except FileNotFoundError as e:
+        except FileNotFoundError:
             with open("config.json", "w") as f:
                 json.dump(default_settings, f)
             return default_settings
@@ -116,12 +98,14 @@ class Main(Charts):
 
         #############################################################################################################
         # This section will create a CCXT EXCHANGE obj for the exchange passed as a parameter.
+        # TODO: There is an API sandbox mode, add that, and then add a DEV mode for no API.
         if exchange in self.config['exchanges'].keys() and self.config['exchanges']['mode'] != "sandbox":
             api = getattr(ccxt, exchange) (
                 {
                     "id":exchange,
                     "apiKey":self.config['exchanges'][exchange]['apiKey'],
-                    "secret":self.config['exchanges'][exchange]['secret']
+                    "secret":self.config['exchanges'][exchange]['secret'],
+                    "password":self.config['exchanges'][exchange]['pass']
                 }
             )
             print(api.check_required_credentials())
@@ -146,7 +130,7 @@ class Main(Charts):
         # fetch the data and store it as "exchanges/markets/{exchange}-markets.json"
         try:
             with open(f"exchanges/markets/{exchange}-markets.json") as f:
-                markets =  json.load(f)
+                markets =  json.loads(f.read())
                 return api, markets
         except FileNotFoundError as e:
             markets = api.load_markets()

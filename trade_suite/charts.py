@@ -10,6 +10,7 @@ import trade as trade
 import dearpygui.dearpygui as dpg
 import utils.DoStuff as do
 import indicators
+import orderbook
 import ccxt.pro as ccxtpro
 from asyncio import run
 from datetime import datetime, timedelta
@@ -54,7 +55,7 @@ class Charts:
 
         self.last_chart = None # temp storage of last symbol so we can delete that chart when adding a new one
         self.OHLCV = None
-        self.fetch_date = 180
+        self.fetch_date = 365
         self.active_charts = []
         
         self.init_window() # Create a window for this exchange
@@ -64,8 +65,11 @@ class Charts:
     def trade_panel(self, sender, app_data, user_data):
         trade.push_trade_panel(sender, self.viewport_width)
 
-    def push_indicator_panel(self, sender, app_data, user_data):
+    def indicator_panel(self, sender, app_data, user_data):
         indicators.push_indicator_panel(sender, app_data, user_data)
+
+    def orderbook_panel(self, sender, app_data, user_data):
+        orderbook.push_orderbook_panel(sender, app_data, user_data)
     
 
     def init_window(self):
@@ -159,15 +163,16 @@ class Charts:
             dpg.add_menu_item(label="+", callback=self.push_chart)
 
             with dpg.menu(label="Fetch Date", tag="fetch-date-menu"):
-                dpg.add_slider_float(label="Days Ago", max_value=100.0, height=160, width=150, callback=self.set_fetch_date, format="%.2f")
+                dpg.add_slider_int(label="Days Ago", max_value=365, height=160, width=150, callback=self.set_fetch_date, format="%.2f")
 
             with dpg.tooltip("fetch-date-menu"):
                     dpg.add_text(
                         """Use this slider to pick how many days of history to fetch. \nTypical Days for Timeframes: \nMinute - 5d \nHour - 15d"""
                     )
 
+            dpg.add_menu_item(label="Orderbook", callback=self.orderbook_panel)
             dpg.add_menu_item(label="Trade", callback=self.trade_panel)
-            dpg.add_menu_item(label="Indicators", callback=self.push_indicator_panel)
+            dpg.add_menu_item(label="Indicators", callback=self.indicator_panel)
 
             with dpg.menu(label="Data"):
                 dpg.add_menu_item(label="Save", callback=self.save_candle_data)
@@ -175,8 +180,7 @@ class Charts:
 
     
     def push_chart(self):
-        """ Invoked every time the "+" is clicked from the "main_nav_bar"
-        """
+        """ Invoked every time the "+" is clicked from the "main_nav_bar" """
         self.symbol = dpg.get_value(f"{self.exchange}-symbols")
         self.timeframe = dpg.get_value(f"{self.exchange}-timeframes")
 
@@ -222,8 +226,8 @@ class Charts:
         
         # TODO: Add progress bar here for loading candles
         # Using this section to determine # of candles that will be returned for a progress bar during candle fetch
-        date_time_obj = datetime.strptime(since, '%Y-%m-%d %H:%M:%S')
-        print((datetime.now() - date_time_obj))
+        # date_time_obj = datetime.strptime(since, '%Y-%m-%d %H:%M:%S')
+        # print((datetime.now() - date_time_obj))
 
         dpg.add_text("Fetching Data", tag=f"{self.exchange}-fetching-text", parent=parent)
         dpg.add_loading_indicator(parent=parent, tag=f"{self.exchange}-loading", pos=[self.viewport_width/2, self.viewport_height/2 - 110], radius=10.0, style=1)
