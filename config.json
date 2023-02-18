@@ -1,1 +1,1 @@
-{"fullscreen": "False", "main_window": {"primary_window_width": 2000}, "last_saved_chart": {"coinbasepro": ["BTC/USDT", "1d"]}, "exchanges": {"mode": "sandbox", "binance": {"apiKey": "", "secret": ""}, "kucoin": {"mode":"sandbox", "apiKey": "", "secret": ""}}}
+{"fullscreen": "False", "main_window": {"primary_window_width": 2000}, "last_saved_chart": {"kucoin": ["BTC/USDT", "1d"]}, "exchanges": {"mode": "trade", "binance": {"apiKey": "", "secret": ""}, "kucoin": {"apiKey": "638b67b3e427e4000176ca0f", "secret": "fbe5cc22-b30e-4891-93f0-d0e96168a803", "pass": "Apollo420$"}}}

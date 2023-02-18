@@ -7,3 +7,6 @@ schedule
 statsmodels
 lxml
 html5lib
+yfinance
+pydantic
+screeninfo

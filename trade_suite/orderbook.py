@@ -13,16 +13,14 @@ async def push_orderbook_panel(sender, app_data, user_data):
         while not done:
             cbp_orderbook = await cbp.watch_order_book("ETH-USDT")
             cb_orderbook = await cb.watch_order_book("ETH-USDT")
-            df1 = pd.DataFrame(cbp_orderbook)
-            df2 = pd.DataFrame(cb_orderbook)
-            print(df1)
-            print(df2)
+            
+            cbp_bids = cbp_orderbook['bids']
+            cbp_asks = cbp_orderbook['asks']
+            print(cbp_bids)
+
             done = True
         await cbp.close()
         await cb.close()
 
 
     await fetch_data()
-
-
-run(push_orderbook_panel(None, None, None))
