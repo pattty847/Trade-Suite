@@ -1,6 +1,6 @@
-venv
-pytests
-exchanges
+/venv
+/pytests
+/exchanges
 .gitignore
-__pycache__
+/__pycache__
 config.json
