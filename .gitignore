@@ -1,6 +1,0 @@
-/venv
-/pytests
-/exchanges
-.gitignore
-/__pycache__
-config.json
