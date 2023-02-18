@@ -12,7 +12,6 @@ import settings.config as config
 from settings.config import DefaultSettings as config
 from charts import Charts
 from screeninfo import get_monitors
-# Test
 
 class Main(Charts):
 
