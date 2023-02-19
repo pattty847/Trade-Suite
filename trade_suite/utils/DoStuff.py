@@ -3,22 +3,37 @@ import pandas as pd
 import pandas_ta as pta
 import numpy as np
 import dearpygui.dearpygui as dpg
+import dearpygui.demo as demo
 import schedule
 from statsmodels.tsa.stattools import coint, adfuller
+from screeninfo import get_monitors
 
-def isFullscreen(config):
-    from screeninfo import get_monitors
-    def get_monitor_size():
-        monitors = get_monitors()
-        for m in monitors:
-            if m.is_primary:
-                monitors = m
-        main_monitor = {"width":monitors.width, "height":monitors.height}
-        return main_monitor
+def get_primary_window():
+    monitors = get_monitors()
+    if len(monitors) == 1:
+        # Only one monitor found, return its size
+        main_monitor = monitors[0]
+    else:
+        # Multiple monitors found, find the primary one
+        main_monitor = next(m for m in monitors if m.is_primary)
+        
+    return main_monitor
 
-    monitor = get_monitor_size()
 
-    return monitor["width"], monitor["height"]
+def draw_dpg_tools():
+    with dpg.menu(label="DPG Tools"):
+        dpg.add_menu_item(label="Show ImGui Demo", callback=dpg.show_imgui_demo)
+        dpg.add_menu_item(label="Show ImPlot Demo", callback=dpg.show_implot_demo)
+        dpg.add_menu_item(label="Show DPG Demo", callback=demo.show_demo)
+        dpg.add_menu_item(label="Show Debug", callback=dpg.show_debug)
+        dpg.add_menu_item(label="Show About", callback=lambda: dpg.show_tool(dpg.mvTool_About))
+        dpg.add_menu_item(label="Show Metrics", callback=lambda: dpg.show_tool(dpg.mvTool_Metrics))
+        dpg.add_menu_item(label="Show Documentation", callback=lambda: dpg.show_tool(dpg.mvTool_Doc))
+        dpg.add_menu_item(label="Show Debug", callback=lambda: dpg.show_tool(dpg.mvTool_Debug))
+        dpg.add_menu_item(label="Show Style Editor", callback=lambda: dpg.show_tool(dpg.mvTool_Style))
+        dpg.add_menu_item(label="Show Font Manager", callback=lambda: dpg.show_tool(dpg.mvTool_Font))
+        dpg.add_menu_item(label="Show Item Registry", callback=lambda: dpg.show_tool(dpg.mvTool_ItemRegistry))
+
 
 def update_settings(settings, update):
     settings.update(update)

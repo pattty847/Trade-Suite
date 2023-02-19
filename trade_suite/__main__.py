@@ -9,7 +9,7 @@ import ccxt
 import utils.DoStuff as do
 import stats
 import settings.config as config
-from settings.config import DefaultSettings as config
+# from settings.config import DefaultSettings as config
 from charts import Charts
 from screeninfo import get_monitors
 

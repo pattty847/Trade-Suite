@@ -123,9 +123,6 @@ class Charts:
         self.fetch_date = app_data
 
 
-    # TODO: Show you solving real world problems while creating this program with the cookbook and things you have learned
-
-
     def draw_charts_menu_nav_bar(self):
         with dpg.menu_bar(parent=self.exchange):
 
