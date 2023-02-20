@@ -5,10 +5,23 @@ import numpy as np
 import dearpygui.dearpygui as dpg
 import dearpygui.demo as demo
 import schedule
+import ccxt.pro as ccxtpro
+import ccxt
+from asyncio import run
 from statsmodels.tsa.stattools import coint, adfuller
 from screeninfo import get_monitors
 
-def get_primary_window():
+def get_exchange_info(exchange_name):
+    if exchange_name == "binance":
+        return None
+    
+    exchange = getattr(ccxt, exchange_name)({'newUpdates': False})
+    symbols = list(exchange.load_markets().keys())
+    timeframes = list(exchange.describe().get('timeframes', None).keys())
+    return {'symbols': symbols, 'timeframes': timeframes}
+
+
+def primary_monitor():
     monitors = get_monitors()
     if len(monitors) == 1:
         # Only one monitor found, return its size
