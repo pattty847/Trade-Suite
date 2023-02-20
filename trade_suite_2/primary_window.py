@@ -1,5 +1,4 @@
 import dearpygui.dearpygui as dpg
-from nav_bar_callbacks import NavBarController
 from chart_controller import ChartController
 import utils.DoStuff as do
 import dearpygui.demo as demo
@@ -10,10 +9,9 @@ class PrimaryWindow:
         self.title = "Trade Suite " + "v1.1"
         self.primary_monitor = primary_monitor
         self.primary_window = "primary_window"
-        self.window_width = self.primary_monitor.width
-        self.window_height = self.primary_monitor.height
-        self.chart_controller = ChartController(self.primary_window)
-        self.nav_bar_controller = NavBarController(self.primary_window, self.chart_controller)
+        self.window_width = int(self.primary_monitor.width / 2)
+        self.window_height = int(self.primary_monitor.height / 2)
+        self.chart_controller = ChartController(self.primary_window, self.primary_monitor)
 
     def start_program(self):
         """ This function will initialize the DearPyGui event loop and draw the Primary Window / Start the program. """
@@ -54,5 +52,5 @@ class PrimaryWindow:
         with dpg.viewport_menu_bar(parent=self.primary_window):
             do.draw_dpg_tools()
 
-            with dpg.menu(label="?"):
-                dpg.add_menu_item(label="New", callback=self.nav_bar_controller.new_chart)
+            with dpg.menu(label="Chart"):
+                dpg.add_menu_item(label="New", callback=self.chart_controller.new_chart)
