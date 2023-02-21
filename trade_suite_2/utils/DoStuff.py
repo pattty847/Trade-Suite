@@ -12,7 +12,7 @@ from statsmodels.tsa.stattools import coint, adfuller
 from screeninfo import get_monitors
 
 def get_exchange_info(exchange_name):
-    if exchange_name == "binance":
+    if exchange_name not in ccxtpro.exchanges or exchange_name == "binance":
         return None
     
     exchange = getattr(ccxt, exchange_name)({'newUpdates': False})

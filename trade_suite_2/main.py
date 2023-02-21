@@ -8,8 +8,8 @@ class TradeSuite:
     def __init__(self) -> None:
         self.title = "Trade Suite " + "v1.1"
         self.primary_monitor = do.primary_monitor()
-        self.window_width = int(self.primary_monitor.width / 2)
-        self.window_height = int(self.primary_monitor.height / 2)
+        self.window_width = int(self.primary_monitor.width * 0.80)
+        self.window_height = int(self.primary_monitor.height * 0.80)
         self.primary_window = PrimaryWindow(
             primary_monitor=self.primary_monitor,
             window_width=self.window_width,
