@@ -1,25 +1,28 @@
 from asyncio import run
 import asyncio
+import threading
 import uuid
 import dearpygui.dearpygui as dpg
 import utils.DoStuff as do
 import ccxt.pro as ccxtpro
+import ccxt
 import data
 
 class Charts:
 
-    def __init__(self, tag, parent):
+    def __init__(self, tag, parent, chart_controller, exchange_name=None, symbol=None, timeframe=None):
         self.tag = tag
         self.parent = parent
+        self.chart_controller = chart_controller
 
         self.id = str(id(self))
 
         self.menu_tag = self.id + '_menu'
         self.subplot_tag = self.id + '_subplot'
-        self.candlestick_plot_tag = self.id + '_candlestick_plot'
+        self.candlestick_plot_tag = self.id + "_candle_series",
         self.volume_plot_tag = self.id + '_volume_plot'
+        
         self.last_chart = None
-
         self.exchange_name = None
         self.ccxt_object = None
         self.describe = None
@@ -38,6 +41,10 @@ class Charts:
 
         self.draw_nav_bar()
 
+        if exchange_name and symbol and timeframe:
+            self.create_exchange(None, exchange_name, None)
+            self.draw_chart(symbol, timeframe, True)
+
 
     def draw_nav_bar(self):
         with dpg.menu_bar(parent=self.tag, tag=self.menu_tag):
@@ -45,11 +52,6 @@ class Charts:
                 dpg.add_listbox(ccxtpro.exchanges, num_items=10, callback=self.create_exchange)
 
     def create_exchange(self, sender, exchange_name, user_data):
-        exchange_class = getattr(ccxtpro, exchange_name)
-        self.ccxt_object = exchange_class({
-            'enableRateLimit': True,  # adjust as needed
-            # add other exchange-specific options here
-        })
         self.exchange_name = exchange_name
         self.describe = do.get_exchange_info(exchange_name)
         self.symbols = self.describe['symbols']
@@ -72,17 +74,22 @@ class Charts:
         # Add new menu items for timeframes
         if self.timeframes:
             with dpg.menu(label="Timeframes", parent=self.menu_tag):
-                timeframe = dpg.add_listbox(list(self.timeframes), num_items=10, default_value="1d")
+                timeframe = dpg.add_listbox(list(self.timeframes), num_items=10, default_value="1m")
 
         dpg.add_menu_item(label="Add", parent=self.menu_tag, callback=lambda:self.draw_chart(symbol, timeframe))
-        dpg.add_menu_item(label="Save Layout", parent=self.menu_tag)
 
-    def draw_chart(self, symbol, timeframe):
+    def draw_chart(self, symbol, timeframe, favorite=False):
+        if not favorite:
+            self.symbol = dpg.get_value(symbol)
+            self.timeframe = dpg.get_value(timeframe)
+        else:
+            self.symbol = symbol
+            self.timeframe = timeframe
 
-        self.symbol = dpg.get_value(symbol)
-        self.timeframe = dpg.get_value(timeframe)
-        print(self.symbol, self.timeframe)
-        self.candles = asyncio.run(data.fetch_candles(self.exchange_name, self.symbol, self.timeframe, "2023-01-01 00:00:00", 1000, False))
+        dpg.add_loading_indicator(tag=self.id + "_loading", radius=10.0, style=1, parent=self.tag)
+        self.candles = asyncio.run(data.fetch_candles(self.exchange_name, self.symbol, self.timeframe, "2023-02-22 00:00:00", 1000, False))
+        thread = threading.Thread(target=self.start_watch_function, args=(self.exchange_name, "watchTrades", self.symbol))
+        thread.start()
 
         dpg.delete_item(self.last_chart)
 
@@ -99,12 +106,14 @@ class Charts:
 
             self.last_chart = f"{self.subplot_tag}_{self.symbol}_{self.timeframe}"
 
-            with dpg.plot(tag=self.candlestick_plot_tag):
+            with dpg.plot():
                 dpg.add_plot_legend()
 
                 xaxis_candles = dpg.add_plot_axis(dpg.mvXAxis, time=True)
 
                 with dpg.plot_axis(dpg.mvYAxis, label="USD"):
+
+                    dpg.delete_item(self.id+"_loading")
 
                     dpg.add_candle_series(
                         self.candles['time'], 
@@ -127,7 +136,30 @@ class Charts:
 
                 with dpg.plot_axis(dpg.mvYAxis, label="USD"):
 
-                    dpg.add_bar_series(self.candles['time'], self.candles['volume'])
+                    dpg.add_line_series(self.candles['time'], self.candles['volume'])
                     
                     dpg.fit_axis_data(dpg.top_container_stack())
                     dpg.fit_axis_data(xaxis_vol)
+
+    def start_watch_function(self, exchange_name, method, symbol):
+        asyncio.run(self.watch_function(exchange_name, method, symbol))
+
+    async def watch_function(self, exchange_name, method, symbol, *args, **kwargs):
+        exchange_class = getattr(ccxtpro, exchange_name)
+        exchange = exchange_class({
+            'enableRateLimit': True,  # add rate limiter
+        })
+        while True:
+            try:
+                # watch the data using the specified method
+                data = await getattr(exchange, f"{method}")(symbol, *args, **kwargs)
+                print(data)
+            except ccxt.BaseError as e:
+                # handle errors
+                print(str(e))
+            finally:
+                await exchange.close()
+
+    # example usage:
+    # symbol = 'BTC/USDT'
+    # run(watch_function('coinbasepro', 'watchTrades', symbol))

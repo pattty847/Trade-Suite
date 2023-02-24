@@ -1,7 +1,6 @@
 import dearpygui.dearpygui as dpg
 from chart_controller import ChartController
 import utils.DoStuff as do
-import dearpygui.demo as demo
 
 class PrimaryWindow:
 
@@ -31,6 +30,9 @@ class PrimaryWindow:
     def draw_nav_bar(self):
         with dpg.viewport_menu_bar(parent=self.primary_window):
             do.draw_dpg_tools()
+
+            # TODO: for fav in favorites: add menu item
+            dpg.add_menu_item(label="CoinbasePro BTCUSDT", callback=self.chart_controller.load_favorite)
 
             with dpg.menu(label="Charts"):
                 dpg.add_menu_item(label="+", callback=self.chart_controller.new_chart)

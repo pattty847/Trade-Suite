@@ -246,8 +246,7 @@ def convert_timeframe(tf):
         return dpg.mvTimeUnit_Day
     elif tf[len(tf) - 1] == 'M':
         return dpg.mvTimeUnit_Mo
-
-
+    
 
 def candles_to_list( candles):
     """This function will convert a dataframe object containing OHLCV data into list format
