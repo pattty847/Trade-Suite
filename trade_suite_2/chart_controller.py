@@ -1,7 +1,6 @@
-from chart import Charts
 import dearpygui.dearpygui as dpg
 import uuid
-
+from chart import Charts
 
 class ChartController:
     def __init__(

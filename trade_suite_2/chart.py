@@ -1,4 +1,3 @@
-from asyncio import run
 import asyncio
 import threading
 import dearpygui.dearpygui as dpg
@@ -6,7 +5,6 @@ import utils.DoStuff as do
 import ccxt.pro as ccxtpro
 import ccxt
 import data
-
 
 class Charts:
     def __init__(
@@ -191,8 +189,4 @@ class Charts:
                 # watch the data using the specified method
                 data = await getattr(exchange, f"{method}")(symbol, *args, **kwargs)
                 print(data)
-            except ccxt.BaseError as e:
-                # handle errors
-                print(str(e))
-            finally:
-                await exchange.close()
+            except ccxt.BaseError as e:from chart import Charts
