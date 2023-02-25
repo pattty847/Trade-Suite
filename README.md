@@ -18,10 +18,4 @@
 
 
 # Pictures
-
-11/22/2022
-![image](https://user-images.githubusercontent.com/23511285/203411154-2c758776-ec42-4bd7-ac33-ebf52ed7cb6a.png)
-
-
-### First Iteration Photo: 10/30/2022
-![image](https://user-images.githubusercontent.com/23511285/199171636-c7d621b3-ffa0-403f-b7c8-899f725a227a.png)
+![Screenshot_20230225_160235](https://user-images.githubusercontent.com/23511285/221379473-a66b92af-7e93-4b8d-bdde-33a96ab062c5.png)
