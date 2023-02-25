@@ -2,22 +2,41 @@ from chart import Charts
 import dearpygui.dearpygui as dpg
 import uuid
 
-class ChartController:
 
-    def __init__(self, parent_window, primary_monitor) -> None:
+class ChartController:
+    def __init__(
+        self, parent_window, primary_monitor, window_width, window_height
+    ) -> None:
         self.parent_window = parent_window
         self.primary_monitor = primary_monitor
         self.active_charts = dict()
+        self.window_width = window_width
+        self.window_height = window_height
 
     def new_chart(self):
         chart_id = str(uuid.uuid4())
-        chart = Charts(tag=chart_id, parent=self.parent_window, chart_controller=self)
+        chart = Charts(
+            tag=chart_id,
+            parent=self.parent_window,
+            chart_controller=self,
+            window_width=self.window_width,
+            window_height=self.window_height,
+        )
         self.active_charts[chart.tag] = chart
         self.position_charts()
 
     def load_favorite(self, exchange_name, symbol, timeframe):
         chart_id = str(uuid.uuid4())
-        chart = Charts(tag=chart_id, parent=self.parent_window, chart_controller=self, exchange_name="coinbasepro", symbol="BTC/USDT", timeframe="1h")
+        chart = Charts(
+            tag=chart_id,
+            parent=self.parent_window,
+            chart_controller=self,
+            window_width=self.window_width,
+            window_height=self.window_height,
+            exchange_name="coinbasepro",
+            symbol="BTC/USDT",
+            timeframe="1h",
+        )
         self.active_charts[chart.tag] = chart
         self.position_charts()
 
@@ -42,19 +61,32 @@ class ChartController:
                 dpg.set_item_height(chart_tag, chart_size[1])
                 dpg.set_item_pos(chart_tag, chart_pos)
             elif num_charts == 3:
-                chart_positions = [[0, offset], [0, height / 2 + offset], [width / 2, height / 2 + offset]]
-                chart_size = [[width, height / 2], [width / 2, height / 2], [width / 2, height / 2]]
+                chart_positions = [
+                    [0, offset],
+                    [0, height / 2 + offset],
+                    [width / 2, height / 2 + offset],
+                ]
+                chart_size = [
+                    [width, height / 2],
+                    [width / 2, height / 2],
+                    [width / 2, height / 2],
+                ]
                 chart_pos = chart_positions[i]
                 dpg.set_item_width(chart_tag, chart_size[i][0])
                 dpg.set_item_height(chart_tag, chart_size[i][1])
                 dpg.set_item_pos(chart_tag, chart_pos)
             elif num_charts == 4:
-                chart_positions = [[0, offset], [width / 2, offset], [0, height / 2 + offset], [width / 2, height / 2 + offset]]
+                chart_positions = [
+                    [0, offset],
+                    [width / 2, offset],
+                    [0, height / 2 + offset],
+                    [width / 2, height / 2 + offset],
+                ]
                 chart_size = [width / 2, height / 2]
                 chart_pos = chart_positions[i]
                 dpg.set_item_width(chart_tag, chart_size[0])
                 dpg.set_item_height(chart_tag, chart_size[1])
                 dpg.set_item_pos(chart_tag, chart_pos)
-    
+
     def save_active_charts(self):
         pass

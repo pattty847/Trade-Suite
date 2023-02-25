@@ -2,12 +2,14 @@ import dearpygui.dearpygui as dpg
 from chart_controller import ChartController
 import utils.DoStuff as do
 
-class PrimaryWindow:
 
+class PrimaryWindow:
     def __init__(self, primary_monitor, window_width, window_height) -> None:
         self.primary_monitor = primary_monitor
         self.primary_window = "primary_window"
-        self.chart_controller = ChartController(self.primary_window, self.primary_monitor)
+        self.chart_controller = ChartController(
+            self.primary_window, self.primary_monitor, window_width, window_height
+        )
 
     def window_setup(self):
         # Primary Window for Program
@@ -18,7 +20,6 @@ class PrimaryWindow:
 
         # Draw the navigation bar
         self.draw_nav_bar()
-
 
     def load_font(self):
         # add a font registry and loads main font
@@ -32,7 +33,10 @@ class PrimaryWindow:
             do.draw_dpg_tools()
 
             # TODO: for fav in favorites: add menu item
-            dpg.add_menu_item(label="CoinbasePro BTCUSDT", callback=self.chart_controller.load_favorite)
+            dpg.add_menu_item(
+                label="CoinbasePro BTCUSDT",
+                callback=self.chart_controller.load_favorite,
+            )
 
             with dpg.menu(label="Charts"):
                 dpg.add_menu_item(label="+", callback=self.chart_controller.new_chart)
