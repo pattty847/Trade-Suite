@@ -33,10 +33,12 @@ class PrimaryWindow:
             do.draw_dpg_tools()
 
             # TODO: for fav in favorites: add menu item
-            dpg.add_menu_item(
-                label="CoinbasePro BTCUSDT",
-                callback=self.chart_controller.load_favorite,
-            )
+            with dpg.menu(label="Favorites"):
+                with dpg.menu(label="CoinbasePro"):
+                    dpg.add_menu_item(
+                    label="BTC/USDT 1H",
+                    callback=self.chart_controller.load_favorite,
+                )
 
             with dpg.menu(label="Charts"):
                 dpg.add_menu_item(label="+", callback=self.chart_controller.new_chart)

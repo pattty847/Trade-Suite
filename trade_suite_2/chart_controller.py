@@ -32,9 +32,9 @@ class ChartController:
             chart_controller=self,
             window_width=self.window_width,
             window_height=self.window_height,
-            exchange_name="coinbasepro",
+            exchange_name="gateio",
             symbol="BTC/USDT",
-            timeframe="1h",
+            timeframe="1m",
         )
         self.active_charts[chart.tag] = chart
         self.position_charts()

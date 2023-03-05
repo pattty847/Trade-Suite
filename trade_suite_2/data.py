@@ -31,7 +31,7 @@ async def fetch_candles(
     candles = (
         json.load(open(filename, "r"))
         if os.path.exists(filename)
-        else {"time": [], "open": [], "high": [], "low": [], "close": [], "volume": []}
+        else {"dates": [], "opens": [], "highs": [], "lows": [], "closes": [], "volumes": []}
     )
 
     fetched_candles = []
@@ -41,8 +41,8 @@ async def fetch_candles(
 
     fetch_since = (
         api.parse8601(since)
-        if not len(candles["time"])
-        else int(candles["time"][-1] * 1000)
+        if not len(candles["dates"])
+        else int(candles["dates"][-1] * 1000)
     )
     while True:
         candle_batch = None
@@ -81,12 +81,12 @@ async def fetch_candles(
         fetch_since = last_time
 
     for row in fetched_candles[1:]:
-        candles["time"].append(row[0] / 1000)
-        candles["open"].append(float(row[1]))
-        candles["high"].append(float(row[2]))
-        candles["low"].append(float(row[3]))
-        candles["close"].append(float(row[4]))
-        candles["volume"].append(float(row[5]))
+        candles["dates"].append(row[0] / 1000)
+        candles["opens"].append(float(row[1]))
+        candles["highs"].append(float(row[2]))
+        candles["lows"].append(float(row[3]))
+        candles["closes"].append(float(row[4]))
+        candles["volumes"].append(float(row[5]))
 
     save_candles_to_file(exchange, symbol, timeframe, candles)
 
