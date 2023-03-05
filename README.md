@@ -1,4 +1,4 @@
-# Trade-Suite, a small trading client side project. Lots more to come. 
+# Trade-Suite, a small trading client (in the works).
 
 ## To run the application. 
 
@@ -15,6 +15,8 @@
 * Added a navbar for quick access to chart settings and layout management
 * Added button to save and load chart layouts (not finished)
 * Implemented handlers for item states, allowing for dynamic callbacks and event handling (not finished)
+* Added real-time crypto charts (some bugs still present)
+* Working on adding circles to show larger trades
 
 
 # Pictures
