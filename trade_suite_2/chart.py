@@ -222,8 +222,9 @@ class Charts:
 
     def update_chart(self, trades):
         # store the timeframe in milliseconds
-        timeframe_ms = self.exchange.parse_timeframe(self.timeframe) * 1000
-        
+        self.timeframe_ms = self.exchange.parse_timeframe(self.timeframe) * 1000
+        self.close_time = self.candles['dates'][-1] * 1000 + self.timeframe_ms
+
         # Get the last candle in the chart
         last_candle = {
             'opens': self.candles['opens'][-1],
@@ -235,9 +236,11 @@ class Charts:
         
         # Loop through trades
         for trade in trades:
-
+            print(trade['timestamp'])
+            print(self.candles['dates'][-1] * 1000 + self.timeframe_ms)
+            print(self.exchange.milliseconds())
             # If the trade is in a new candle, add a new candle to self.candles
-            if trade['timestamp'] >= self.candles['dates'][-1] * 1000 + timeframe_ms:
+            if trade['timestamp'] >= self.close_time:
                 self.candles['dates'].append(trade['timestamp'] // 1000)
                 self.candles['opens'].append(trade['price'])
                 self.candles['highs'].append(trade['price'])
