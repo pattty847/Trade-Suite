@@ -5,6 +5,7 @@ import utils.DoStuff as do
 import ccxt.pro as ccxtpro
 import ccxt
 import data
+from console import Dequeue
 
 class Charts:
     def __init__(
@@ -29,8 +30,10 @@ class Charts:
         self.subplot_tag = self.id + "_subplot"
         self.candlestick_plot_tag = self.id + "_candle_series"
         self.volume_plot_tag = self.id + "_volume_plot"
-        self.last_chart = None
 
+        self.console = Dequeue(1000, self.tag)
+
+        self.last_chart = None
         self.exchange_name = None
         self.ccxt_object = None
 
@@ -70,9 +73,9 @@ class Charts:
         self.describe = do.get_exchange_info(exchange_name)
         self.symbols = self.describe["symbols"]
         self.timeframes = self.describe["timeframes"]
-        self.push_exchange()
+        self.push_nav_bar()
 
-    def push_exchange(self):
+    def push_nav_bar(self):
         dpg.configure_item(self.tag, label=f"{self.exchange_name.upper()}")
 
         # Remove existing menu items
@@ -95,6 +98,9 @@ class Charts:
                 timeframe = dpg.add_listbox(
                     list(self.timeframes), num_items=10, default_value="1m"
                 )
+
+        dpg.add_menu_item(label="Console", parent=self.menu_tag, callback=self.push_console)
+
 
         dpg.add_menu_item(
             label="Add",
@@ -123,10 +129,9 @@ class Charts:
                 self.exchange_name,
                 self.symbol,
                 self.timeframe,
-                "2023-02-22 00:00:00",
+                "2023-03-01 00:00:00",
                 1000,
-                False,
-                self.candlestick_plot_tag,
+                False
             )
         )
 
@@ -185,10 +190,10 @@ class Charts:
 
     def start_thread(self):
         print("Starting.")
-        self.thread = threading.Thread(target=self.start_thread_)
+        self.thread = threading.Thread(target=self.start_loop)
         self.thread.start()
 
-    def start_thread_(self):
+    def start_loop(self):
         asyncio.set_event_loop(self.loop)
 
         self.loop.create_task(self.watch_function(self.exchange_name, "watchTrades", self.symbol))
@@ -213,7 +218,13 @@ class Charts:
             try:
                 # watch the data using the specified method
                 trades = await getattr(self.exchange, f"{method}")(symbol)
+                
                 print(trades)
+
+                # dpg.delete_item(self.tag + "_console", children_only=True)
+                # self.console.append(str(trades) + "\n")
+                # dpg.add_input_text(label="", multiline=True, default_value=self.console.lines, height=300, readonly=True, parent=self.tag + "_console")
+
                 self.update_chart(trades)
             except ccxt.BaseError as e:
                 await self.exchange.close()
@@ -226,7 +237,7 @@ class Charts:
         self.close_time = self.candles['dates'][-1] * 1000 + self.timeframe_ms
 
         # Get the last candle in the chart
-        last_candle = {
+        current_candle = {
             'opens': self.candles['opens'][-1],
             'highs': self.candles['highs'][-1],
             'lows': self.candles['lows'][-1],
@@ -236,12 +247,10 @@ class Charts:
         
         # Loop through trades
         for trade in trades:
-            print(trade['timestamp'])
-            print(self.candles['dates'][-1] * 1000 + self.timeframe_ms)
-            print(self.exchange.milliseconds())
+
             # If the trade is in a new candle, add a new candle to self.candles
             if trade['timestamp'] >= self.close_time:
-                self.candles['dates'].append(trade['timestamp'] // 1000)
+                self.candles['dates'].append(self.close_time / 1000)
                 self.candles['opens'].append(trade['price'])
                 self.candles['highs'].append(trade['price'])
                 self.candles['lows'].append(trade['price'])
@@ -249,7 +258,7 @@ class Charts:
                 self.candles['closes'].append(trade['price'])
                 
                 # Set last_candle to the new candle
-                last_candle = {
+                current_candle = {
                     'opens': trade['price'],
                     'highs': trade['price'],
                     'lows': trade['price'],
@@ -258,16 +267,17 @@ class Charts:
                 }
             else:
                 # If the trade is in the current candle, update the last candle in self.candles
-                last_candle['highs'] = max(last_candle['highs'], trade['price'])
-                last_candle['lows'] = min(last_candle['lows'], trade['price'])
-                last_candle['volumes'] += trade['amount']
-                last_candle['closes'] = trade['price']
-                
-                # Update the last candle in self.candles
-                self.candles['highs'][-1] = last_candle['highs']
-                self.candles['lows'][-1] = last_candle['lows']
-                self.candles['volumes'][-1] = last_candle['volumes']
-                self.candles['closes'][-1] = last_candle['closes']
+                self.candles['highs'][-1] = max(current_candle['highs'], trade['price'])
+                self.candles['lows'][-1] = min(current_candle['lows'], trade['price'])
+                self.candles['volumes'][-1] += trade['amount']
+                self.candles['closes'][-1] = trade['price']
+
+            # if trade['amount'] >= 0.001:
+            #     x = self.candles['dates'][-1]
+            #     y = trade['price']
+            #     size = trade['amount'] * 1000  # adjust the size to your preference
+            #     dpg.draw_circle(center=[x, y], radius=size, color=[255, 255, 255, 255], thickness=1, parent='test')
+
             
         dpg.configure_item(
             self.candlestick_plot_tag, 

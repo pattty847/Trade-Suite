@@ -8,14 +8,13 @@ class ChartController:
     ) -> None:
         self.parent_window = parent_window
         self.primary_monitor = primary_monitor
-        self.active_charts = dict()
+        self.active_charts = {}
         self.window_width = window_width
         self.window_height = window_height
 
     def new_chart(self):
-        chart_id = str(uuid.uuid4())
         chart = Charts(
-            tag=chart_id,
+            tag=str(uuid.uuid4()),
             parent=self.parent_window,
             chart_controller=self,
             window_width=self.window_width,
@@ -25,9 +24,8 @@ class ChartController:
         self.position_charts()
 
     def load_favorite(self, exchange_name, symbol, timeframe):
-        chart_id = str(uuid.uuid4())
         chart = Charts(
-            tag=chart_id,
+            tag=str(uuid.uuid4()),
             parent=self.parent_window,
             chart_controller=self,
             window_width=self.window_width,

@@ -13,6 +13,16 @@ def save_candles_to_file(exchange, symbol, timeframe, candles):
     with open(f"{directory}/{symbol}_{timeframe}.json", "w") as f:
         json.dump(candles, f)
 
+def load_candles_from_file(exchange, symbol, timeframe):
+    filename = (
+        f"exchanges/candles/{exchange}/{symbol.replace('/', '_')}_{timeframe}.json"
+    )
+    return (
+        json.load(open(filename, "r"))
+        if os.path.exists(filename)
+        else {"dates": [], "opens": [], "highs": [], "lows": [], "closes": [], "volumes": []}
+    )
+
 
 async def fetch_candles(
     exchange: str,
@@ -21,56 +31,44 @@ async def fetch_candles(
     since: str,
     limit: int,
     dataframe: bool,
-    chart_tag: str,
     max_retries=3,
 ):
     api = getattr(ccxtpro, exchange)()
-    filename = (
-        f"exchanges/candles/{exchange}/{symbol.replace('/', '_')}_{timeframe}.json"
-    )
-    candles = (
-        json.load(open(filename, "r"))
-        if os.path.exists(filename)
-        else {"dates": [], "opens": [], "highs": [], "lows": [], "closes": [], "volumes": []}
-    )
 
-    fetched_candles = []
+    old_candles = load_candles_from_file(exchange, symbol, timeframe)
+
+    new_candles = []
     timeframe_duration_in_seconds = api.parse_timeframe(timeframe)
     timedelta = limit * timeframe_duration_in_seconds * 1000
     now = api.milliseconds()
 
     fetch_since = (
         api.parse8601(since)
-        if not len(candles["dates"])
-        else int(candles["dates"][-1] * 1000)
+        if not len(old_candles["dates"])
+        else int(old_candles["dates"][-1] * 1000)
     )
+    
     while True:
-        candle_batch = None
+        new_candle_batch = None
         for num_retries in range(max_retries):
             try:
-                candle_batch = await api.fetch_ohlcv(
+                new_candle_batch = await api.fetch_ohlcv(
                     symbol, timeframe, since=fetch_since, limit=limit
                 )
             except ccxt.ExchangeError as e:
                 print(e)
                 await asyncio.sleep(1)
-            if candle_batch is not None:
+            if new_candle_batch is not None:
                 break
-        if candle_batch is None:
+        if new_candle_batch is None:
             await api.close()
             return None
 
-        fetched_candles += candle_batch
+        new_candles += new_candle_batch
 
-        if len(candle_batch):
-            last_time = candle_batch[-1][0] + timeframe_duration_in_seconds * 1000
-            print(
-                len(candle_batch),
-                "candles from",
-                api.iso8601(candle_batch[0][0]),
-                "to",
-                api.iso8601(candle_batch[-1][0]),
-            )
+        if len(new_candle_batch):
+            last_time = new_candle_batch[-1][0] + timeframe_duration_in_seconds * 1000
+            print(len(new_candle_batch), "candles from", api.iso8601(new_candle_batch[0][0]), "to", api.iso8601(new_candle_batch[-1][0]))
         else:
             last_time = fetch_since + timedelta
             print("no candles")
@@ -80,15 +78,18 @@ async def fetch_candles(
 
         fetch_since = last_time
 
-    for row in fetched_candles[1:]:
-        candles["dates"].append(row[0] / 1000)
-        candles["opens"].append(float(row[1]))
-        candles["highs"].append(float(row[2]))
-        candles["lows"].append(float(row[3]))
-        candles["closes"].append(float(row[4]))
-        candles["volumes"].append(float(row[5]))
+    for row in new_candles[1:]:
+        old_candles["dates"].append(row[0] / 1000)
+        old_candles["opens"].append(float(row[1]))
+        old_candles["highs"].append(float(row[2]))
+        old_candles["lows"].append(float(row[3]))
+        old_candles["closes"].append(float(row[4]))
+        old_candles["volumes"].append(float(row[5]))
 
-    save_candles_to_file(exchange, symbol, timeframe, candles)
+    save_candles_to_file(exchange, symbol, timeframe, old_candles)
 
     await api.close()
-    return pd.DataFrame(candles) if dataframe else candles
+    return pd.DataFrame(old_candles) if dataframe else old_candles
+
+
+# asyncio.run(fetch_candles("coinbasepro", "BTC/USD", "5m", "2023-03-04 00:00:00", 1000, False))

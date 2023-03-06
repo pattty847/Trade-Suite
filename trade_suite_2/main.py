@@ -1,11 +1,11 @@
 from primary_window import PrimaryWindow
 import utils.DoStuff as do
 import dearpygui.dearpygui as dpg
-
+import dearpygui.demo as demo
 
 class TradeSuite:
     def __init__(self) -> None:
-        self.title = "Trade Suite " + "v1.1"
+        self.title = "Trade Suite " + "v1.2"
         self.primary_monitor = do.primary_monitor()
         self.window_width = int(self.primary_monitor.width * 0.80)
         self.window_height = int(self.primary_monitor.height * 0.80)
