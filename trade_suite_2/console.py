@@ -16,9 +16,9 @@ class Dequeue:
         return iter(self.lines)
 
 
-dequeue = Dequeue(1000, "asd")
-for i in range(2000):
-    dequeue.append(f"Line {i}")
+# dequeue = Dequeue(1000, "asd")
+# for i in range(2000):
+#     dequeue.append(f"Line {i}")
 
-for line in dequeue:
-    print(line)
+# for line in dequeue:
+#     print(line)
