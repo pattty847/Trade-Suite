@@ -30,9 +30,9 @@ class ChartController:
             chart_controller=self,
             window_width=self.window_width,
             window_height=self.window_height,
-            exchange_name="coinbasepro",
-            symbol="BTC/USD",
-            timeframe="1m",
+            exchange_name=exchange_name,
+            symbol=symbol,
+            timeframe=timeframe,
         )
         self.active_charts[chart.tag] = chart
         self.position_charts()

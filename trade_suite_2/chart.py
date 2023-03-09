@@ -5,7 +5,7 @@ import utils.DoStuff as do
 import ccxt.pro as ccxtpro
 import ccxt
 import data
-from console import Dequeue
+from console import Console
 
 class Charts:
     def __init__(
@@ -31,7 +31,7 @@ class Charts:
         self.candlestick_plot_tag = self.id + "_candle_series"
         self.volume_plot_tag = self.id + "_volume_plot"
 
-        self.console = Dequeue(1000, self.tag)
+        self.console = Console(1000, self.tag)
 
         self.last_chart = None
         self.exchange_name = None
@@ -107,6 +107,10 @@ class Charts:
             parent=self.menu_tag,
             callback=lambda: self.draw_chart(symbol, timeframe),
         )
+
+    def push_console(self):
+        with dpg.window(label="Console", tag=self.tag + "_console"):
+            dpg.add_input_text(default_value=[str(x) for x in self.console.lines])
 
     def draw_chart(self, symbol, timeframe, favorite=False):
         dpg.delete_item(self.last_chart)
@@ -220,10 +224,6 @@ class Charts:
                 trades = await getattr(self.exchange, f"{method}")(symbol)
                 
                 print(trades)
-
-                # dpg.delete_item(self.tag + "_console", children_only=True)
-                # self.console.append(str(trades) + "\n")
-                # dpg.add_input_text(label="", multiline=True, default_value=self.console.lines, height=300, readonly=True, parent=self.tag + "_console")
 
                 self.update_chart(trades)
             except ccxt.BaseError as e:

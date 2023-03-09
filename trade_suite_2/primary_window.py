@@ -21,6 +21,10 @@ class PrimaryWindow:
         # Draw the navigation bar
         self.draw_nav_bar()
 
+        # Launch favorites immediately upon open here
+        # self.chart_controller.load_favorite("coinbasepro", "BTC/USD", "1m")
+        # self.chart_controller.position_charts()
+
     def load_font(self):
         # add a font registry and loads main font
         with dpg.font_registry():
@@ -37,7 +41,7 @@ class PrimaryWindow:
                 with dpg.menu(label="CoinbasePro"):
                     dpg.add_menu_item(
                     label="BTC/USDT 1H",
-                    callback=self.chart_controller.load_favorite,
+                    callback= lambda : self.chart_controller.load_favorite("coinbasepro", "BTC/USD", "1m"),
                 )
 
             with dpg.menu(label="Charts"):

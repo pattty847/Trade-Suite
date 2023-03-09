@@ -4,7 +4,7 @@ import pandas as pd
 import ccxt
 import ccxt.pro as ccxtpro
 import asyncio
-
+from utils.Timer import Timer
 
 def save_candles_to_file(exchange, symbol, timeframe, candles):
     symbol = symbol.replace("/", "_")
@@ -92,4 +92,32 @@ async def fetch_candles(
     return pd.DataFrame(old_candles) if dataframe else old_candles
 
 
-# asyncio.run(fetch_candles("coinbasepro", "BTC/USD", "5m", "2023-03-04 00:00:00", 1000, False))
+async def fetch(exchange_name, symbol, limit):
+    exchange_class = getattr(ccxtpro, exchange_name)
+    exchange = exchange_class(
+        {
+            "enableRateLimit": True,  # add rate limiter
+            "newUpdates": True
+        }
+    )
+
+    while True:
+        try:
+            # watch the data using the specified method
+            orderbook = await getattr(exchange, "watchOrderBook")(symbol, limit)
+            trades = await getattr(exchange, "watchTrades")(symbol)
+
+            if orderbook['bids'] and orderbook['asks']:
+                print(trades)
+                print(orderbook['bids'][0], orderbook['asks'][0])
+
+        except KeyboardInterrupt:
+            print("KeyboardInterrupt detected. Closing exchange...")
+            await exchange.close()
+            break
+
+    print("Exchange closed.")
+
+
+
+# asyncio.run(fetch("coinbasepro", "BTC/USD", 1))
