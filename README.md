@@ -1,5 +1,7 @@
 # Trade-Suite, a small trading client (in the works).
 
+## Trade_Suite_2 is the main folder now.
+
 ## To run the application. 
 
 **Run `pip install -r requirements.txt` in your virtual environment.**
