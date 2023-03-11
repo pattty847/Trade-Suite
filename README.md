@@ -1,4 +1,4 @@
-# Trade-Suite, a small trading client (in the works).
+# Trade-Suite - Made with CCXTPRO.
 
 ## To run the application. 
 ### Trade_Suite_2 is the main folder now.
