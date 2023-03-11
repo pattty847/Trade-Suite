@@ -2,17 +2,27 @@ from primary_window import PrimaryWindow
 import utils.DoStuff as do
 import dearpygui.dearpygui as dpg
 import dearpygui.demo as demo
+import logging
+
 
 class TradeSuite:
+    logging.basicConfig(
+            level=logging.INFO, 
+            filename="info_logs.log", 
+            filemode="a", 
+            format='%(asctime)s - %(message)s', 
+            datefmt='%d-%b-%y %H:%M:%S'
+        )
+    
     def __init__(self) -> None:
         self.title = "Trade Suite " + "v1.2"
         self.primary_monitor = do.primary_monitor()
-        self.window_width = int(self.primary_monitor.width * 0.80)
-        self.window_height = int(self.primary_monitor.height * 0.80)
+        self.window_width = int(self.primary_monitor.width * 0.90)
+        self.window_height = int(self.primary_monitor.height * 0.90)
         self.primary_window = PrimaryWindow(
             primary_monitor=self.primary_monitor,
             window_width=self.window_width,
-            window_height=self.window_height,
+            window_height=self.window_height
         )
 
     def configure_dpg(self):
@@ -47,5 +57,8 @@ class TradeSuite:
         dpg.destroy_context()
 
 
-trade_suite = TradeSuite()
-trade_suite.configure_dpg()
+if __name__ == "__main__":
+    logging.info("-----------------------------------------------")
+    logging.info("Starting Trade Suite...")
+    trade_suite = TradeSuite()
+    trade_suite.configure_dpg()

@@ -5,6 +5,7 @@ import utils.DoStuff as do
 import ccxt.pro as ccxtpro
 import ccxt
 import data
+import logging
 from console import Console
 
 class Charts:
@@ -114,7 +115,6 @@ class Charts:
 
     def draw_chart(self, symbol, timeframe, favorite=False):
         dpg.delete_item(self.last_chart)
-        self.stop_thread()
 
         self.symbol = dpg.get_value(symbol) if not favorite else symbol
         self.timeframe = dpg.get_value(timeframe) if not favorite else timeframe
@@ -173,14 +173,14 @@ class Charts:
                     dpg.fit_axis_data(dpg.top_container_stack())
                     dpg.fit_axis_data(xaxis_candles)
 
+                    if self.thread.is_alive():
+                        self.stop_thread()
                     self.start_thread()
 
             # Volume plot
             with dpg.plot(tag=self.volume_plot_tag):
                 dpg.add_plot_legend()
-                xaxis_vol = dpg.add_plot_axis(
-                    dpg.mvXAxis, label="Time [UTC]", time=True
-                )
+                xaxis_vol = dpg.add_plot_axis(dpg.mvXAxis, label="Time [UTC]", time=True)
 
                 with dpg.plot_axis(dpg.mvYAxis, label="USD"):
                     dpg.add_bar_series(
@@ -205,11 +205,21 @@ class Charts:
         self.loop.run_forever()
 
     def stop_thread(self):
+
         if self.thread.is_alive():
-            print("Stopping.")
+            logging.info(f"Stopping thread for {self.exchange_name} {self.symbol} {self.timeframe}")
+            logging.info(f"Deleting chart: {self.tag}")
+            
             del self.chart_controller.active_charts[self.tag]
             self.loop.call_soon_threadsafe(self.loop.stop)
             self.thread.join()
+            asyncio.run(self.exchange.close())
+            return 
+        
+        logging.info(f"Deleting chart: {self.tag}")
+
+        del self.chart_controller.active_charts[self.tag]
+        self.chart_controller.position_charts()
 
     async def watch_function(self, exchange_name, method, symbol):
         exchange_class = getattr(ccxtpro, exchange_name)
@@ -257,7 +267,7 @@ class Charts:
                 self.candles['volumes'].append(trade['amount'])
                 self.candles['closes'].append(trade['price'])
                 
-                # Set last_candle to the new candle
+                # Set current_candle to the new candle
                 current_candle = {
                     'opens': trade['price'],
                     'highs': trade['price'],
