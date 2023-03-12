@@ -53,20 +53,15 @@ class Charts:
 
         dpg.add_window(label=f"{self.tag}", tag=self.tag, width=500, height=500, on_close=self.stop_thread)
 
-        self.draw_nav_bar()
-
         if exchange_name and symbol and timeframe:
-            self.create_exchange(None, exchange_name, None)
+            self.push_nav_bar(exchange_name)
             self.draw_chart(symbol, timeframe, True)
+        else:
+            self.push_nav_bar("coinbasepro")
+            self.draw_chart("BTC/USD", "1m", True)
+            self.chart_controller.position_charts()
 
-    def draw_nav_bar(self):
-        with dpg.menu_bar(parent=self.tag, tag=self.menu_tag):
-            with dpg.menu(label="Exchange"):
-                dpg.add_listbox(
-                    ccxtpro.exchanges, num_items=10, callback=self.create_exchange
-                )
-
-    def create_exchange(self, sender, exchange_name, user_data):
+    def push_nav_bar(self, exchange_name):
         if self.last_chart is not None:
             dpg.delete_item(self.last_chart)
             
@@ -74,44 +69,59 @@ class Charts:
         self.describe = do.get_exchange_info(exchange_name)
         self.symbols = self.describe["symbols"]
         self.timeframes = self.describe["timeframes"]
-        self.push_nav_bar()
 
-    def push_nav_bar(self):
         dpg.configure_item(self.tag, label=f"{self.exchange_name.upper()}")
 
-        # Remove existing menu items
-        dpg.delete_item(self.menu_tag, children_only=True)
+        with dpg.menu_bar(parent=self.tag, tag=self.menu_tag):
 
-        with dpg.menu(label="Exchanges", parent=self.menu_tag):
-            dpg.add_listbox(
-                ccxtpro.exchanges, num_items=10, callback=self.create_exchange
-            )
-
-        # Add new menu items for symbols
-        with dpg.menu(label="Symbols", parent=self.menu_tag):
-            symbol = dpg.add_listbox(
-                list(self.symbols), num_items=10, default_value="BTC/USDT"
-            )
-
-        # Add new menu items for timeframes
-        if self.timeframes:
-            with dpg.menu(label="Timeframes", parent=self.menu_tag):
-                timeframe = dpg.add_listbox(
-                    list(self.timeframes), num_items=10, default_value="1m"
+            # Add new menu items for symbols
+            with dpg.menu(label="Symbols", parent=self.menu_tag):
+                dpg.add_input_text(tag=f"{self.tag}-searcher", hint="Search",
+                    callback=lambda sender, data: do.searcher(f"{self.tag}-searcher", 
+                    f"{self.tag}-symbols-listbox", self.symbols)
                 )
 
-        dpg.add_menu_item(label="Console", parent=self.menu_tag, callback=self.push_console)
+                symbol = dpg.add_listbox(
+                    sorted(self.symbols), 
+                    default_value="BTC/USDT",
+                    tag=f"{self.tag}-symbols-listbox", 
+                    callback=lambda : dpg.configure_item(f"{self.tag}-searcher", 
+                    label=dpg.get_value(f"{self.tag}-searcher")),
+                    num_items=10
+                )
 
+            # Add new menu items for timeframes
+            if self.timeframes:
+                with dpg.menu(label="Timeframes", parent=self.menu_tag):
+                    timeframe = dpg.add_listbox(
+                        list(self.timeframes), num_items=10, default_value="1m"
+                    )
 
-        dpg.add_menu_item(
-            label="Add",
-            parent=self.menu_tag,
-            callback=lambda: self.draw_chart(symbol, timeframe),
-        )
+            dpg.add_menu_item(
+                label="Add",
+                parent=self.menu_tag,
+                callback=lambda: self.draw_chart(symbol, timeframe),
+            )
+
+            dpg.add_menu_item(label="Indicators", callback=self.indicators_menu)
+
+    def indicators_menu_on_close(self, sender):
+        dpg.delete_item(sender)
+    
+    def indicators_menu(self):
+        with dpg.window(
+                label="Settings", 
+                tag="chart_settings_menu", 
+                pos=[self.window_width / 2 - 250, self.window_height / 2 - 250], 
+                width=500, 
+                height=500, 
+                on_close=self.indicators_menu_on_close
+            ):
+            dpg.add_button(label="SMA", callback=lambda: dpg.add_line_series(self.candles['dates'], self.candles['closes']))
 
     def push_console(self):
         with dpg.window(label="Console", tag=self.tag + "_console"):
-            dpg.add_input_text(default_value=[str(x) for x in self.console.lines])
+            dpg.add_input_text(tag="_console")
 
     def draw_chart(self, symbol, timeframe, favorite=False):
         dpg.delete_item(self.last_chart)
@@ -152,7 +162,7 @@ class Charts:
         ):
             self.last_chart = f"{self.subplot_tag}_{self.symbol}_{self.timeframe}"
 
-            with dpg.plot():
+            with dpg.plot(tag='plot'):
                 dpg.add_plot_legend()
 
                 xaxis_candles = dpg.add_plot_axis(dpg.mvXAxis, time=True)
@@ -171,14 +181,14 @@ class Charts:
                     )
 
                     dpg.fit_axis_data(dpg.top_container_stack())
-                    dpg.fit_axis_data(xaxis_candles)
+                dpg.fit_axis_data(xaxis_candles)
 
-                    if self.thread.is_alive():
-                        self.stop_thread()
-                    self.start_thread()
+                if self.thread.is_alive():
+                    self.stop_thread()
+                self.start_thread()
 
             # Volume plot
-            with dpg.plot(tag=self.volume_plot_tag):
+            with dpg.plot():
                 dpg.add_plot_legend()
                 xaxis_vol = dpg.add_plot_axis(dpg.mvXAxis, label="Time [UTC]", time=True)
 
@@ -186,7 +196,8 @@ class Charts:
                     dpg.add_bar_series(
                         self.candles['dates'],
                         self.candles['volumes'],
-                        weight=10.0
+                        weight=1.0,
+                        tag=self.volume_plot_tag
                     )
 
                     dpg.fit_axis_data(dpg.top_container_stack())
@@ -209,9 +220,9 @@ class Charts:
         if self.thread.is_alive():
             logging.info(f"Stopping thread for {self.exchange_name} {self.symbol} {self.timeframe}")
             logging.info(f"Deleting chart: {self.tag}")
-            
+
             del self.chart_controller.active_charts[self.tag]
-            self.loop.call_soon_threadsafe(self.loop.stop)
+            self.loop.stop()
             self.thread.join()
             asyncio.run(self.exchange.close())
             return 
@@ -232,7 +243,7 @@ class Charts:
             try:
                 # watch the data using the specified method
                 trades = await getattr(self.exchange, f"{method}")(symbol)
-                
+
                 print(trades)
 
                 self.update_chart(trades)
@@ -282,18 +293,24 @@ class Charts:
                 self.candles['volumes'][-1] += trade['amount']
                 self.candles['closes'][-1] = trade['price']
 
-            # if trade['amount'] >= 0.001:
-            #     x = self.candles['dates'][-1]
-            #     y = trade['price']
-            #     size = trade['amount'] * 1000  # adjust the size to your preference
-            #     dpg.draw_circle(center=[x, y], radius=size, color=[255, 255, 255, 255], thickness=1, parent='test')
+            if trade['amount'] >= 1:
+                x = self.candles['dates'][-1]
+                y = trade['price']
+                size = trade['amount'] # adjust the size to your preference
+                dpg.draw_circle(center=[x, y], radius=size, color=[255, 255, 255, 255], thickness=1, parent='plot')
 
             
-        dpg.configure_item(
-            self.candlestick_plot_tag, 
-            dates=self.candles['dates'], 
-            opens=self.candles['opens'],
-            highs=self.candles['highs'],
-            lows=self.candles['lows'],
-            closes=self.candles['closes']
-        )
+            dpg.configure_item(
+                self.candlestick_plot_tag, 
+                dates=self.candles['dates'], 
+                opens=self.candles['opens'],
+                highs=self.candles['highs'],
+                lows=self.candles['lows'],
+                closes=self.candles['closes']
+            )
+
+            dpg.configure_item(
+                self.volume_plot_tag,
+                x=self.candles['dates'],
+                y=self.candles['volumes']
+            )

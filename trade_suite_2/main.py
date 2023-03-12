@@ -17,8 +17,8 @@ class TradeSuite:
     def __init__(self) -> None:
         self.title = "Trade Suite " + "v1.2"
         self.primary_monitor = do.primary_monitor()
-        self.window_width = int(self.primary_monitor.width * 0.90)
-        self.window_height = int(self.primary_monitor.height * 0.90)
+        self.window_width = int(self.primary_monitor.width * 0.85)
+        self.window_height = int(self.primary_monitor.height * 0.85)
         self.primary_window = PrimaryWindow(
             primary_monitor=self.primary_monitor,
             window_width=self.window_width,
@@ -53,6 +53,7 @@ class TradeSuite:
         dpg.setup_dearpygui()
         dpg.show_viewport()
         dpg.set_primary_window(self.primary_window.primary_window, True)
+        # dpg.toggle_viewport_fullscreen()
         dpg.start_dearpygui()
         dpg.destroy_context()
 

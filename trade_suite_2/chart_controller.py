@@ -3,6 +3,7 @@ import uuid
 from chart import Charts
 import logging
 import ccxt
+import utils.DoStuff as do
 
 class ChartController:
     def __init__(
@@ -15,20 +16,7 @@ class ChartController:
         self.window_height = window_height
         self.exchanges = ["coinbasepro", "bitfinex", "binanceus", "bybit", "bitmex"]
 
-    def new_chart(self):
-        tag = str(uuid.uuid4())
-        logging.info(f"Creating Chart Object: {tag}")
-        chart = Charts(
-            tag=tag,
-            parent=self.parent_window,
-            chart_controller=self,
-            window_width=self.window_width,
-            window_height=self.window_height,
-        )
-        self.active_charts[tag] = chart
-        self.position_charts()
-
-    def load_favorite(self, exchange_name, symbol, timeframe):
+    def new_chart(self, exchange_name, symbol, timeframe):
         tag = str(uuid.uuid4())
         logging.info(f"Creating Chart Object: {tag}")
         chart = Charts(
@@ -44,7 +32,7 @@ class ChartController:
         self.active_charts[tag] = chart
         self.position_charts()
 
-    def chart_settings_on_close_callback(self, sender, app_data, user_data):
+    def chart_settings_on_close_callback(self, sender):
         dpg.delete_item(sender)
 
     def chart_settings_menu(self, sender, app_data, user_data):
@@ -59,11 +47,16 @@ class ChartController:
             ):
                 pass
 
-    def side_menu_on_close_callback(self, sender, app_data, user_data):
+    def new_chart_on_close_callback(self, sender):
         dpg.delete_item(sender)
 
-    def side_menu(self, sender, app_data, user_data):
-        with dpg.window(pos=[self.window_width - 355, 31], width=350, height=self.window_height - 36, on_close=self.side_menu_on_close_callback):
+    def new_chart_menu(self, sender, app_data, user_data):
+        with dpg.window(
+            pos=[5, 31], 
+            width=350, 
+            height=self.window_height - 36, 
+            on_close=self.new_chart_on_close_callback
+        ):
             with dpg.group(tag="side_menu", horizontal=True):
                 dpg.add_text("Exchange")
             
@@ -79,7 +72,7 @@ class ChartController:
 
         # Set the size and position of each chart window
         for i, (chart_tag, chart_obj) in enumerate(self.active_charts.items()):
-            logging.info(f"Positioning chart: {chart_tag}")
+            logging.info(f"Positioning chart {i+1}: {chart_tag} / {num_charts}")
             if num_charts == 1:
                 dpg.set_item_width(chart_tag, width)
                 dpg.set_item_height(chart_tag, height)

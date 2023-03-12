@@ -16,6 +16,9 @@ def get_exchange_info(exchange_name):
         return None
     
     exchange = getattr(ccxt, exchange_name)({'newUpdates': False})
+    if not exchange.has['fetchOHLCV']:
+        return
+    
     symbols = list(exchange.load_markets().keys())
     timeframes = list(exchange.describe().get('timeframes', None).keys())
     return {'symbols': symbols, 'timeframes': timeframes}
