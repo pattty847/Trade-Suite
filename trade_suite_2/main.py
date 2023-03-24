@@ -29,7 +29,7 @@ class TradeSuite:
         """This function will initialize the DearPyGui event loop and draw the Primary Window / Start the program."""
         dpg.create_context()
 
-        # MAIN ENTRY POINT TO PROGRAMR
+        # MAIN ENTRY POINT TO PROGRAM
         self.primary_window.window_setup()
 
         # DEARPYGUI VIEWPORT SETUP

@@ -121,4 +121,4 @@ async def fetch(exchange_name, symbol, limit):
 
 
 
-# asyncio.run(fetch("coinbasepro", "BTC/USD", 1))
+asyncio.run(fetch("coinbasepro", "BTC/USD", 1))

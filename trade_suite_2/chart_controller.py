@@ -15,6 +15,25 @@ class ChartController:
         self.window_width = window_width
         self.window_height = window_height
         self.exchanges = ["coinbasepro", "bitfinex", "binanceus", "bybit", "bitmex"]
+        self.rows = 1
+        self.cols = 1
+
+    # Testing
+    def build_stage(self):
+
+        self.stage = dpg.add_child_window(parent=self.parent_window)
+
+        with dpg.subplots(
+            rows=self.rows,
+            columns=self.cols,
+            label="Test",
+            width=-1,
+            height=-1,
+            link_all_x=True,
+            parent=self.stage,
+        ):
+           with dpg.plot():
+               pass
 
     def new_chart(self, exchange_name, symbol, timeframe):
         tag = str(uuid.uuid4())

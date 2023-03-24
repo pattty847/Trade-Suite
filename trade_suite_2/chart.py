@@ -53,10 +53,12 @@ class Charts:
 
         dpg.add_window(label=f"{self.tag}", tag=self.tag, width=500, height=500, on_close=self.stop_thread)
 
+        # If the Chart object is passed these parameters, we are pushing a preloaded favorite chart.
         if exchange_name and symbol and timeframe:
             self.push_nav_bar(exchange_name)
             self.draw_chart(symbol, timeframe, True)
         else:
+        # We push a default chart: CoinbasePro BTC/USD 1m, or whatever else. This can be set to load the user's last chart.
             self.push_nav_bar("coinbasepro")
             self.draw_chart("BTC/USD", "1m", True)
             self.chart_controller.position_charts()
@@ -117,7 +119,7 @@ class Charts:
                 height=500, 
                 on_close=self.indicators_menu_on_close
             ):
-            dpg.add_button(label="SMA", callback=lambda: dpg.add_line_series(self.candles['dates'], self.candles['closes']))
+            pass
 
     def push_console(self):
         with dpg.window(label="Console", tag=self.tag + "_console"):
@@ -211,7 +213,7 @@ class Charts:
     def start_loop(self):
         asyncio.set_event_loop(self.loop)
 
-        self.loop.create_task(self.watch_function(self.exchange_name, "watchTrades", self.symbol))
+        self.loop.create_task(self.watch_trades(self.exchange_name, "watchTrades", self.symbol))
 
         self.loop.run_forever()
 
@@ -222,6 +224,7 @@ class Charts:
             logging.info(f"Deleting chart: {self.tag}")
 
             del self.chart_controller.active_charts[self.tag]
+            self.chart_controller.position_charts()
             self.loop.stop()
             self.thread.join()
             asyncio.run(self.exchange.close())
@@ -232,7 +235,7 @@ class Charts:
         del self.chart_controller.active_charts[self.tag]
         self.chart_controller.position_charts()
 
-    async def watch_function(self, exchange_name, method, symbol):
+    async def watch_trades(self, exchange_name, method, symbol):
         exchange_class = getattr(ccxtpro, exchange_name)
         self.exchange = exchange_class(
             {

@@ -16,20 +16,27 @@ class PrimaryWindow:
         logging.info("Adding Primary Window")
         dpg.add_window(tag=self.primary_window)
 
-        # Load the font registry
-        logging.info("Adding Font Registry")
-        self.load_font()
-
-        logging.info("Adding mouse and keyboard registries")
-        self.load_keyboard_mouse_handler()
+        # Load all registeries
+        self.load_registries()
 
         # Draw the navigation bar
         logging.info("Adding Navigation Bar")
         self.draw_nav_bar()
 
+        # self.chart_controller.build_stage()
+
         # Launch favorites immediately upon open here
         # logging.info("Loading Favorite Chart: coinbasepro BTC/USD 1m")
         # self.chart_controller.new_chart("coinbasepro", "BTC/USD", "1m")
+
+    def load_registries(self):
+        # Load the font registry
+        logging.info("Adding Font Registry")
+        self.load_font()
+
+        # Load mouse and keyboard registries 
+        logging.info("Adding mouse and keyboard registries")
+        self.load_keyboard_mouse_handler()
 
     def load_keyboard_mouse_handler(self):
         with dpg.handler_registry(show=False, tag="keyboard_handler"):
@@ -54,20 +61,20 @@ class PrimaryWindow:
             dpg.bind_font(default_font)
 
     def draw_nav_bar(self):
-        with dpg.viewport_menu_bar(parent=self.primary_window):
+        with dpg.menu_bar(parent=self.primary_window):
             do.draw_dpg_tools()
 
             # TODO: for fav in favorites: add menu item
-            with dpg.menu(label="Favorites"):
-                with dpg.menu(label="CoinbasePro"):
-                    dpg.add_menu_item(
-                    label="BTC/USD 1m",
-                    callback= lambda : self.chart_controller.new_chart("coinbasepro", "BTC/USD", "1m"),
-                )
                     
             dpg.add_menu_item(label="Full", callback=dpg.toggle_viewport_fullscreen)
             
             with dpg.menu(label="Charts"):
                 dpg.add_menu_item(label="New", callback=self.chart_controller.new_chart_menu)
+                with dpg.menu(label="Favorites"):
+                    with dpg.menu(label="CoinbasePro"):
+                        dpg.add_menu_item(
+                        label="BTC/USD 1m",
+                        callback= lambda : self.chart_controller.new_chart("coinbasepro", "BTC/USD", "1m"),
+                    )
                 dpg.add_menu_item(label="Position Charts", callback=self.chart_controller.position_charts)
                 dpg.add_menu_item(label="Settings", callback=self.chart_controller.chart_settings_menu)
