@@ -73,6 +73,6 @@ class ViewPort:
 
 
 
-with ViewPort(title='Custom Title', width=600, height=200, x_pos=500, y_pos=500) as viewport:
-    # Clean up
-    pass
+# with ViewPort(title='Custom Title', width=600, height=200, x_pos=500, y_pos=500) as viewport:
+#     # Clean up
+#     pass

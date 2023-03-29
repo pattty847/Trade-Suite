@@ -119,23 +119,23 @@ if __name__ == "__main__":
     tw = TradeWatch()
     logging.info("Starting program...")
 
-    # Create the parser
-    parser = argparse.ArgumentParser(description='Command Line Control System')
+    # # Create the parser
+    # parser = argparse.ArgumentParser(description='Command Line Control System')
 
-    # Add the arguments
-    parser.add_argument('-a', '--action', choices=['trades'], required=True, help='Action to perform.')
-    parser.add_argument('-e', '--exchange', nargs='+', required=True, help='Exchange(s) to watch.')
-    parser.add_argument('-s', '--symbol', required=False, help="What symbol's trade to watch. (default BTC/USDT)")
+    # # Add the arguments
+    # parser.add_argument('-a', '--action', choices=['trades'], required=True, help='Action to perform.')
+    # parser.add_argument('-e', '--exchange', nargs='+', required=True, help='Exchange(s) to watch.')
+    # parser.add_argument('-s', '--symbol', required=False, help="What symbol's trade to watch. (default BTC/USDT)")
 
-    # Parse the arguments
-    args = parser.parse_args()
+    # # Parse the arguments
+    # args = parser.parse_args()
 
-    # Perform the action
-    if args.action == 'trades':
-        loop = asyncio.get_event_loop()
-        loop.run_until_complete(
-            tw.fetch_all(
-                exchange_names=['coinbasepro', 'okx', 'kucoin', 'bybit', 'huobi', 'bitfinex', 'cryptocom', 'binanceus', 'kraken'] if 'top' in args.exchange else args.exchange, 
-                symbol=args.symbol if args.symbol else "BTC/USDT"
-                )
-            )
+    # # Perform the action
+    # if args.action == 'trades':
+    #     loop = asyncio.get_event_loop()
+    #     loop.run_until_complete(
+    #         tw.fetch_all(
+    #             exchange_names=['coinbasepro', 'okx', 'kucoin', 'bybit', 'huobi', 'bitfinex', 'cryptocom', 'binanceus', 'kraken'] if 'top' in args.exchange else args.exchange, 
+    #             symbol=args.symbol if args.symbol else "BTC/USDT"
+    #             )
+    #         )

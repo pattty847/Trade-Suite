@@ -1128,3 +1128,101 @@ task: <Task cancelling name='Task-31' coro=<AiohttpClient.ping_loop() running at
 task: <Task pending name='Task-20' coro=<Charts.watch_trades() running at /run/media/pepe/Vault/Windows/Desktop/Programming/Python/Trade-Suite/trade_suite_2/chart.py:248> wait_for=<Future pending cb=[Task.task_wakeup()]>>
 24-Mar-23 09:39:10 - Task was destroyed but it is pending!
 task: <Task cancelling name='Task-31' coro=<AiohttpClient.ping_loop() done, defined at /home/pepe/Desktop/Programming/Python/Trade-Suite/venv/lib64/python3.11/site-packages/ccxt/pro/base/aiohttp_client.py:93> wait_for=<Future cancelled>>
+25-Mar-23 11:41:13 - -----------------------------------------------
+25-Mar-23 11:41:13 - Starting Trade Suite...
+25-Mar-23 11:41:13 - Adding Primary Window
+25-Mar-23 11:41:13 - Adding Font Registry
+25-Mar-23 11:41:13 - Adding mouse and keyboard registries
+25-Mar-23 11:41:13 - Adding Navigation Bar
+25-Mar-23 11:41:17 - Creating Chart Object: e2a8e3c3-b47d-42e3-a18e-132b227ff7fc
+25-Mar-23 11:41:19 - Positioning chart 1: e2a8e3c3-b47d-42e3-a18e-132b227ff7fc / 1
+25-Mar-23 11:41:37 - Stopping thread for coinbasepro BTC/USD 1m
+25-Mar-23 11:41:37 - Deleting chart: e2a8e3c3-b47d-42e3-a18e-132b227ff7fc
+25-Mar-23 11:41:37 - Task was destroyed but it is pending!
+task: <Task pending name='Task-22' coro=<Charts.watch_trades() running at /run/media/pepe/Vault/Windows/Desktop/Programming/Python/Trade-Suite/trade_suite_2/chart.py:249> wait_for=<Future pending cb=[Task.task_wakeup()]>>
+25-Mar-23 11:41:37 - Task was destroyed but it is pending!
+task: <Task cancelling name='Task-33' coro=<AiohttpClient.ping_loop() done, defined at /home/pepe/Desktop/Programming/Python/Trade-Suite/venv/lib64/python3.11/site-packages/ccxt/pro/base/aiohttp_client.py:93> wait_for=<Future cancelled>>
+25-Mar-23 11:41:55 - -----------------------------------------------
+25-Mar-23 11:41:55 - Starting Trade Suite...
+25-Mar-23 11:41:55 - Adding Primary Window
+25-Mar-23 11:41:55 - Adding Font Registry
+25-Mar-23 11:41:55 - Adding mouse and keyboard registries
+25-Mar-23 11:41:55 - Adding Navigation Bar
+25-Mar-23 11:41:58 - Creating Chart Object: f0fd3274-cd23-47c2-890e-00c48d0c5197
+25-Mar-23 11:41:58 - Positioning chart 1: f0fd3274-cd23-47c2-890e-00c48d0c5197 / 1
+25-Mar-23 11:42:33 - Stopping thread for coinbasepro BTC/USD 1m
+25-Mar-23 11:42:33 - Deleting chart: f0fd3274-cd23-47c2-890e-00c48d0c5197
+25-Mar-23 11:42:34 - Task was destroyed but it is pending!
+task: <Task pending name='Task-12' coro=<Charts.watch_trades() running at /run/media/pepe/Vault/Windows/Desktop/Programming/Python/Trade-Suite/trade_suite_2/chart.py:249> wait_for=<Future pending cb=[Task.task_wakeup()]>>
+25-Mar-23 11:42:34 - Task was destroyed but it is pending!
+task: <Task cancelling name='Task-23' coro=<AiohttpClient.ping_loop() running at /home/pepe/Desktop/Programming/Python/Trade-Suite/venv/lib64/python3.11/site-packages/ccxt/pro/base/aiohttp_client.py:110> wait_for=<Future cancelled>>
+25-Mar-23 11:42:50 - -----------------------------------------------
+25-Mar-23 11:42:50 - Starting Trade Suite...
+25-Mar-23 11:42:50 - Adding Primary Window
+25-Mar-23 11:42:50 - Adding Font Registry
+25-Mar-23 11:42:50 - Adding mouse and keyboard registries
+25-Mar-23 11:42:50 - Adding Navigation Bar
+25-Mar-23 11:42:52 - Creating Chart Object: d491fc4a-0c29-4228-a5d1-dea2779d0103
+25-Mar-23 11:42:53 - Positioning chart 1: d491fc4a-0c29-4228-a5d1-dea2779d0103 / 1
+25-Mar-23 11:43:06 - Stopping thread for coinbasepro BTC/USD 1m
+25-Mar-23 11:43:06 - Deleting chart: d491fc4a-0c29-4228-a5d1-dea2779d0103
+25-Mar-23 11:43:07 - Task was destroyed but it is pending!
+task: <Task pending name='Task-12' coro=<Charts.watch_trades() running at /run/media/pepe/Vault/Windows/Desktop/Programming/Python/Trade-Suite/trade_suite_2/chart.py:249> wait_for=<Future pending cb=[Task.task_wakeup()]>>
+25-Mar-23 11:43:07 - Task was destroyed but it is pending!
+task: <Task cancelling name='Task-23' coro=<AiohttpClient.ping_loop() done, defined at /home/pepe/Desktop/Programming/Python/Trade-Suite/venv/lib64/python3.11/site-packages/ccxt/pro/base/aiohttp_client.py:93> wait_for=<Future cancelled>>
+25-Mar-23 11:50:24 - -----------------------------------------------
+25-Mar-23 11:50:24 - Starting Trade Suite...
+25-Mar-23 11:50:24 - Adding Primary Window
+25-Mar-23 11:50:24 - Adding Font Registry
+25-Mar-23 11:50:24 - Adding mouse and keyboard registries
+25-Mar-23 11:50:24 - Adding Navigation Bar
+25-Mar-23 11:50:27 - Creating Chart Object: 5892957c-169c-4b07-8282-f41b067e3193
+25-Mar-23 11:50:28 - Positioning chart 1: 5892957c-169c-4b07-8282-f41b067e3193 / 1
+25-Mar-23 11:51:00 - Stopping thread for coinbasepro BTC/USD 1m
+25-Mar-23 11:51:00 - Deleting chart: 5892957c-169c-4b07-8282-f41b067e3193
+25-Mar-23 11:51:02 - Task was destroyed but it is pending!
+task: <Task pending name='Task-12' coro=<Charts.watch_trades() running at /run/media/pepe/Vault/Windows/Desktop/Programming/Python/Trade-Suite/trade_suite_2/chart.py:249> wait_for=<Future finished result=[{'id': '5141...ate': None}]}]>>
+25-Mar-23 11:51:02 - Task was destroyed but it is pending!
+task: <Task cancelling name='Task-23' coro=<AiohttpClient.ping_loop() running at /home/pepe/Desktop/Programming/Python/Trade-Suite/venv/lib64/python3.11/site-packages/ccxt/pro/base/aiohttp_client.py:110> wait_for=<Future cancelled>>
+26-Mar-23 08:52:13 - -----------------------------------------------
+26-Mar-23 08:52:13 - Starting Trade Suite...
+26-Mar-23 08:52:13 - Adding Primary Window
+26-Mar-23 08:52:13 - Adding Font Registry
+26-Mar-23 08:52:13 - Adding mouse and keyboard registries
+26-Mar-23 08:52:13 - Adding Navigation Bar
+26-Mar-23 08:52:16 - Creating Chart Object: 9a05dfd3-50ea-4d83-9326-dfa14c5884f0
+26-Mar-23 08:52:17 - Positioning chart 1: 9a05dfd3-50ea-4d83-9326-dfa14c5884f0 / 1
+26-Mar-23 08:53:48 - Stopping thread for coinbasepro BTC/USD 1m
+26-Mar-23 08:53:48 - Deleting chart: 9a05dfd3-50ea-4d83-9326-dfa14c5884f0
+26-Mar-23 08:53:49 - Task was destroyed but it is pending!
+task: <Task pending name='Task-20' coro=<Charts.watch_trades() running at /run/media/pepe/Vault/Windows/Desktop/Programming/Python/Trade-Suite/trade_suite_2/chart.py:249> wait_for=<Future pending cb=[Task.task_wakeup()]>>
+26-Mar-23 08:53:49 - Task was destroyed but it is pending!
+task: <Task cancelling name='Task-31' coro=<AiohttpClient.ping_loop() running at /home/pepe/Desktop/Programming/Python/Trade-Suite/venv/lib64/python3.11/site-packages/ccxt/pro/base/aiohttp_client.py:110> wait_for=<Future cancelled>>
+26-Mar-23 08:54:00 - -----------------------------------------------
+26-Mar-23 08:54:00 - Starting Trade Suite...
+26-Mar-23 08:54:00 - Adding Primary Window
+26-Mar-23 08:54:00 - Adding Font Registry
+26-Mar-23 08:54:00 - Adding mouse and keyboard registries
+26-Mar-23 08:54:00 - Adding Navigation Bar
+26-Mar-23 08:54:02 - Creating Chart Object: 71cf5724-5d6d-468e-9408-36c464cdfa10
+26-Mar-23 08:54:03 - Positioning chart 1: 71cf5724-5d6d-468e-9408-36c464cdfa10 / 1
+26-Mar-23 08:54:10 - Stopping thread for coinbasepro BTC/USD 1m
+26-Mar-23 08:54:10 - Deleting chart: 71cf5724-5d6d-468e-9408-36c464cdfa10
+26-Mar-23 08:54:11 - Task was destroyed but it is pending!
+task: <Task pending name='Task-14' coro=<Charts.watch_trades() running at /run/media/pepe/Vault/Windows/Desktop/Programming/Python/Trade-Suite/trade_suite_2/chart.py:249> wait_for=<Future pending cb=[Task.task_wakeup()]>>
+26-Mar-23 08:54:11 - Task was destroyed but it is pending!
+task: <Task cancelling name='Task-25' coro=<AiohttpClient.ping_loop() done, defined at /home/pepe/Desktop/Programming/Python/Trade-Suite/venv/lib64/python3.11/site-packages/ccxt/pro/base/aiohttp_client.py:93> wait_for=<Future cancelled>>
+26-Mar-23 09:12:06 - -----------------------------------------------
+26-Mar-23 09:12:06 - Starting Trade Suite...
+26-Mar-23 09:12:06 - Adding Primary Window
+26-Mar-23 09:12:06 - Adding Font Registry
+26-Mar-23 09:12:06 - Adding mouse and keyboard registries
+26-Mar-23 09:12:06 - Adding Navigation Bar
+26-Mar-23 09:12:10 - Creating Chart Object: 9620f854-83eb-4a60-9ce9-2eddc7770d5d
+26-Mar-23 09:12:11 - Positioning chart 1: 9620f854-83eb-4a60-9ce9-2eddc7770d5d / 1
+26-Mar-23 09:12:21 - Stopping thread for coinbasepro BTC/USD 1m
+26-Mar-23 09:12:21 - Deleting chart: 9620f854-83eb-4a60-9ce9-2eddc7770d5d
+26-Mar-23 09:12:22 - Task was destroyed but it is pending!
+task: <Task pending name='Task-12' coro=<Charts.watch_trades() running at /run/media/pepe/Vault/Windows/Desktop/Programming/Python/Trade-Suite/trade_suite_2/chart.py:249> wait_for=<Future pending cb=[Task.task_wakeup()]>>
+26-Mar-23 09:12:22 - Task was destroyed but it is pending!
+task: <Task cancelling name='Task-23' coro=<AiohttpClient.ping_loop() done, defined at /home/pepe/Desktop/Programming/Python/Trade-Suite/venv/lib64/python3.11/site-packages/ccxt/pro/base/aiohttp_client.py:93> wait_for=<Future cancelled>>

@@ -145,5 +145,5 @@ async def main():
     account = PaperTradingAccount(initial_balance=100000, trade_fee_pct=0.01, ohlcv_file='/home/pepe/Desktop/Programming/Python/Trade-Suite/exchanges/candles/coinbasepro/BTC_USD_1m.json')
     await account.start_websocket(exchange_name='coinbasepro', symbol='BTC/USD', limit=10)
 
-if __name__ == "__main__":
-    asyncio.run(main())
+# if __name__ == "__main__":
+#     asyncio.run(main())

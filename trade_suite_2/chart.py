@@ -178,12 +178,13 @@ class Charts:
                         self.candles["closes"],
                         self.candles["lows"],
                         self.candles["highs"],
+                        weight=0.25,
                         tag=self.candlestick_plot_tag,
                         time_unit=do.convert_timeframe(self.timeframe),
                     )
 
                     dpg.fit_axis_data(dpg.top_container_stack())
-                dpg.fit_axis_data(xaxis_candles)
+                    dpg.fit_axis_data(xaxis_candles)
 
                 if self.thread.is_alive():
                     self.stop_thread()
