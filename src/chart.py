@@ -10,10 +10,11 @@ from utils.loading import loading_overlay
 from console import Console
 
 class Charts:
-    def __init__(self, parent):
+    def __init__(self, parent, viewport):
         self.id = str(id(self))
         self.tag = "chart"
         self.parent = parent
+        self.viewport = viewport
 
         self.menu_tag = self.id + "_menu"
         self.subplot_tag = self.id + "_subplot"
