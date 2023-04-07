@@ -1226,3 +1226,49 @@ task: <Task cancelling name='Task-25' coro=<AiohttpClient.ping_loop() done, defi
 task: <Task pending name='Task-12' coro=<Charts.watch_trades() running at /run/media/pepe/Vault/Windows/Desktop/Programming/Python/Trade-Suite/trade_suite_2/chart.py:249> wait_for=<Future pending cb=[Task.task_wakeup()]>>
 26-Mar-23 09:12:22 - Task was destroyed but it is pending!
 task: <Task cancelling name='Task-23' coro=<AiohttpClient.ping_loop() done, defined at /home/pepe/Desktop/Programming/Python/Trade-Suite/venv/lib64/python3.11/site-packages/ccxt/pro/base/aiohttp_client.py:93> wait_for=<Future cancelled>>
+02-Apr-23 16:32:52 - -----------------------------------------------
+02-Apr-23 16:32:52 - Starting Trade Suite...
+02-Apr-23 16:32:53 - Adding Primary Window
+02-Apr-23 16:32:53 - Adding Font Registry
+02-Apr-23 16:32:53 - Adding mouse and keyboard registries
+02-Apr-23 16:32:53 - Adding Navigation Bar
+02-Apr-23 16:33:02 - Creating Chart Object: b7cf18f3-2e81-4b97-bfc1-a7dec02018d7
+02-Apr-23 16:33:08 - Positioning chart 1: b7cf18f3-2e81-4b97-bfc1-a7dec02018d7 / 1
+02-Apr-23 16:33:31 - Stopping thread for coinbasepro BTC/USD 1m
+02-Apr-23 16:33:31 - Deleting chart: b7cf18f3-2e81-4b97-bfc1-a7dec02018d7
+02-Apr-23 16:33:32 - Task was destroyed but it is pending!
+task: <Task pending name='Task-84' coro=<Charts.watch_trades() running at /run/media/pepe/Vault/Windows/Desktop/Programming/Python/Trade-Suite/trade_suite_2/chart.py:249> wait_for=<Future pending cb=[Task.task_wakeup()]>>
+02-Apr-23 16:33:32 - Task was destroyed but it is pending!
+task: <Task cancelling name='Task-95' coro=<AiohttpClient.ping_loop() done, defined at /home/pepe/Desktop/Programming/Python/Trade-Suite/venv/lib64/python3.11/site-packages/ccxt/pro/base/aiohttp_client.py:93> wait_for=<Future cancelled>>
+06-Apr-23 19:27:05 - -----------------------------------------------
+06-Apr-23 19:27:05 - Starting Trade Suite...
+06-Apr-23 19:27:05 - Adding Primary Window
+06-Apr-23 19:27:05 - Adding Font Registry
+06-Apr-23 19:27:05 - Adding mouse and keyboard registries
+06-Apr-23 19:27:05 - Adding Navigation Bar
+06-Apr-23 19:27:10 - Creating Chart Object: cfbaa023-688e-4ec7-96dd-0ec5b8880fb6
+06-Apr-23 19:27:14 - Positioning chart 1: cfbaa023-688e-4ec7-96dd-0ec5b8880fb6 / 1
+06-Apr-23 19:27:51 - Task exception was never retrieved
+future: <Task finished name='Task-50' coro=<Charts.watch_trades() done, defined at d:\Windows\Desktop\Programming\Python\Trade-Suite\trade_suite_2\chart.py:239> exception=SystemError('<built-in function configure_item> returned a result with an exception set')>
+Exception: 
+Error:     [1005]
+Command:   configure_item
+Item:      0 
+Label:     Not found
+Item Type: Unknown
+Message:   Item not found: 0
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "d:\Windows\Desktop\Programming\Python\Trade-Suite\trade_suite_2\chart.py", line 253, in watch_trades
+    self.update_chart(trades)
+  File "d:\Windows\Desktop\Programming\Python\Trade-Suite\trade_suite_2\chart.py", line 307, in update_chart
+    dpg.configure_item(
+  File "C:\Users\Pepe\AppData\Local\Programs\Python\Python311\Lib\site-packages\dearpygui\dearpygui.py", line 80, in configure_item
+    internal_dpg.configure_item(item, **kwargs)
+SystemError: <built-in function configure_item> returned a result with an exception set
+06-Apr-23 19:27:52 - Stopping thread for coinbasepro ETH/USD 1h
+06-Apr-23 19:27:52 - Deleting chart: cfbaa023-688e-4ec7-96dd-0ec5b8880fb6
+06-Apr-23 19:28:10 - Stopping thread for coinbasepro ETH/USD 1h
+06-Apr-23 19:28:10 - Deleting chart: cfbaa023-688e-4ec7-96dd-0ec5b8880fb6

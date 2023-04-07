@@ -6,26 +6,14 @@ import ccxt.pro as ccxtpro
 import ccxt
 import data
 import logging
+from utils.loading import loading_overlay
 from console import Console
 
 class Charts:
-    def __init__(
-        self,
-        tag,
-        parent,
-        chart_controller,
-        window_width,
-        window_height,
-        exchange_name=None,
-        symbol=None,
-        timeframe=None
-    ):
+    def __init__(self, parent):
         self.id = str(id(self))
-        self.tag = tag
+        self.tag = "chart"
         self.parent = parent
-        self.chart_controller = chart_controller
-        self.window_width = window_width
-        self.window_height = window_height
 
         self.menu_tag = self.id + "_menu"
         self.subplot_tag = self.id + "_subplot"
@@ -33,123 +21,30 @@ class Charts:
         self.volume_plot_tag = self.id + "_volume_plot"
 
         self.console = Console(1000, self.tag)
-
         self.last_chart = None
-        self.exchange_name = None
-        self.ccxt_object = None
-
-        self.describe = None
-        self.symbols = None
-        self.symbol = None
-        self.timeframes = None
-        self.timeframe = None
-
-        self.candles = None
-        self.last_candle_time = None
-        self.current_candle = None
 
         self.thread = threading.Thread()
         self.loop = asyncio.new_event_loop()
 
-        dpg.add_window(label=f"{self.tag}", tag=self.tag, width=500, height=500, on_close=self.stop_thread)
+    def draw_chart(self, exchange, symbol, timeframe):
+        
+        self.exchange = exchange
+        self.symbol = symbol
+        self.timeframe = timeframe
+        
+        print(self.exchange, self.symbol, self.timeframe)
 
-        # If the Chart object is passed these parameters, we are pushing a preloaded favorite chart.
-        if exchange_name and symbol and timeframe:
-            self.push_nav_bar(exchange_name)
-            self.draw_chart(symbol, timeframe, True)
-        else:
-        # We push a default chart: CoinbasePro BTC/USD 1m, or whatever else. This can be set to load the user's last chart.
-            self.push_nav_bar("coinbasepro")
-            self.draw_chart("BTC/USD", "1m", True)
-            self.chart_controller.position_charts()
-
-    def push_nav_bar(self, exchange_name):
-        if self.last_chart is not None:
-            dpg.delete_item(self.last_chart)
-            
-        self.exchange_name = exchange_name
-        self.describe = do.get_exchange_info(exchange_name)
-        self.symbols = self.describe["symbols"]
-        self.timeframes = self.describe["timeframes"]
-
-        dpg.configure_item(self.tag, label=f"{self.exchange_name.upper()}")
-
-        with dpg.menu_bar(parent=self.tag, tag=self.menu_tag):
-
-            # Add new menu items for symbols
-            with dpg.menu(label="Symbols", parent=self.menu_tag):
-                dpg.add_input_text(tag=f"{self.tag}-searcher", hint="Search",
-                    callback=lambda sender, data: do.searcher(f"{self.tag}-searcher", 
-                    f"{self.tag}-symbols-listbox", self.symbols)
+        with loading_overlay():
+            self.candles = asyncio.run(
+                data.fetch_candles(
+                    self.exchange,
+                    self.symbol,
+                    self.timeframe,
+                    "2023-03-01 00:00:00",
+                    1000,
+                    False
                 )
-
-                symbol = dpg.add_listbox(
-                    sorted(self.symbols), 
-                    default_value="BTC/USDT",
-                    tag=f"{self.tag}-symbols-listbox", 
-                    callback=lambda : dpg.configure_item(f"{self.tag}-searcher", 
-                    label=dpg.get_value(f"{self.tag}-searcher")),
-                    num_items=10
-                )
-
-            # Add new menu items for timeframes
-            if self.timeframes:
-                with dpg.menu(label="Timeframes", parent=self.menu_tag):
-                    timeframe = dpg.add_listbox(
-                        list(self.timeframes), num_items=10, default_value="1m"
-                    )
-
-            dpg.add_menu_item(
-                label="Add",
-                parent=self.menu_tag,
-                callback=lambda: self.draw_chart(symbol, timeframe),
             )
-
-            dpg.add_menu_item(label="Indicators", callback=self.indicators_menu)
-
-    def indicators_menu_on_close(self, sender):
-        dpg.delete_item(sender)
-    
-    def indicators_menu(self):
-        with dpg.window(
-                label="Settings", 
-                tag="chart_settings_menu", 
-                pos=[self.window_width / 2 - 250, self.window_height / 2 - 250], 
-                width=500, 
-                height=500, 
-                on_close=self.indicators_menu_on_close
-            ):
-            pass
-
-    def push_console(self):
-        with dpg.window(label="Console", tag=self.tag + "_console"):
-            dpg.add_input_text(tag="_console")
-
-    def draw_chart(self, symbol, timeframe, favorite=False):
-        dpg.delete_item(self.last_chart)
-
-        self.symbol = dpg.get_value(symbol) if not favorite else symbol
-        self.timeframe = dpg.get_value(timeframe) if not favorite else timeframe
-
-        dpg.delete_item(self.id + "_loading")
-        dpg.add_loading_indicator(
-            tag=self.id + "_loading",
-            pos=[self.window_width / 2, self.window_height / 2 - 110],
-            radius=10.0,
-            style=1,
-            parent=self.tag,
-        )
-
-        self.candles = asyncio.run(
-            data.fetch_candles(
-                self.exchange_name,
-                self.symbol,
-                self.timeframe,
-                "2023-03-01 00:00:00",
-                1000,
-                False
-            )
-        )
 
         with dpg.subplots(
             rows=2,
@@ -159,7 +54,7 @@ class Charts:
             height=-1,
             link_all_x=True,
             row_ratios=[0.66, 0.33],
-            parent=self.tag,
+            parent=self.parent,
             tag=f"{self.subplot_tag}_{self.symbol}_{self.timeframe}",
         ):
             self.last_chart = f"{self.subplot_tag}_{self.symbol}_{self.timeframe}"
@@ -178,7 +73,7 @@ class Charts:
                         self.candles["closes"],
                         self.candles["lows"],
                         self.candles["highs"],
-                        weight=0.25,
+                        weight=0.1,
                         tag=self.candlestick_plot_tag,
                         time_unit=do.convert_timeframe(self.timeframe),
                     )
@@ -214,31 +109,27 @@ class Charts:
     def start_loop(self):
         asyncio.set_event_loop(self.loop)
 
-        self.loop.create_task(self.watch_trades(self.exchange_name, "watchTrades", self.symbol))
+        self.loop.create_task(self.watch_trades(self.exchange, "watchTrades", self.symbol))
 
         self.loop.run_forever()
 
     def stop_thread(self):
 
         if self.thread.is_alive():
-            logging.info(f"Stopping thread for {self.exchange_name} {self.symbol} {self.timeframe}")
+            logging.info(f"Stopping thread for {self.exchange} {self.symbol} {self.timeframe}")
             logging.info(f"Deleting chart: {self.tag}")
 
-            del self.chart_controller.active_charts[self.tag]
-            self.chart_controller.position_charts()
             self.loop.stop()
             self.thread.join()
-            asyncio.run(self.exchange.close())
+            asyncio.run(self.exchange_object.close())
             return 
         
         logging.info(f"Deleting chart: {self.tag}")
 
-        del self.chart_controller.active_charts[self.tag]
-        self.chart_controller.position_charts()
 
     async def watch_trades(self, exchange_name, method, symbol):
         exchange_class = getattr(ccxtpro, exchange_name)
-        self.exchange = exchange_class(
+        self.exchange_object = exchange_class(
             {
                 "enableRateLimit": True,  # add rate limiter
             }
@@ -246,19 +137,19 @@ class Charts:
         while self.thread.is_alive():
             try:
                 # watch the data using the specified method
-                trades = await getattr(self.exchange, f"{method}")(symbol)
+                trades = await getattr(self.exchange_object, f"{method}")(symbol)
 
                 print(trades)
 
                 self.update_chart(trades)
             except ccxt.BaseError as e:
-                await self.exchange.close()
+                await self.exchange_object.close()
 
-        await self.exchange.close()
+        await self.exchange_object.close()
 
     def update_chart(self, trades):
         # store the timeframe in milliseconds
-        self.timeframe_ms = self.exchange.parse_timeframe(self.timeframe) * 1000
+        self.timeframe_ms = self.exchange_object.parse_timeframe(self.timeframe) * 1000
         self.close_time = self.candles['dates'][-1] * 1000 + self.timeframe_ms
 
         # Get the last candle in the chart
