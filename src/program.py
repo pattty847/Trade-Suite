@@ -43,7 +43,7 @@ class Program:
                     self.chart = Charts(charts, self.viewport)
                     self.chart.draw_chart('coinbasepro', 'BTC/USD', '1m')
                 
-            with dpg.tab(label="Tab 2"):
+            with dpg.tab(label="Strategy"):
                 with dpg.child_window() as strategy:
                     self.strategy = Strategy(strategy, self.viewport)
                     self.strategy.build_ui()

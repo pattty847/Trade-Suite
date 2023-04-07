@@ -33,8 +33,8 @@ class Charts:
         dpg.delete_item(self.last_chart)
         
         self.exchange = exchange
-        self.symbol = symbol
-        self.timeframe = timeframe
+        self.symbol = symbol if type(symbol) is not int else dpg.get_value(symbol)
+        self.timeframe = timeframe if type(timeframe) is not int else dpg.get_value(timeframe)
         
         print(self.exchange, self.symbol, self.timeframe)
 
