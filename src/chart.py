@@ -1,7 +1,7 @@
 import asyncio
 import threading
 import dearpygui.dearpygui as dpg
-import utils.DoStuff as do
+import utils.do_stuff as do
 import ccxt.pro as ccxtpro
 import ccxt
 import data
@@ -25,8 +25,11 @@ class Charts:
 
         self.thread = threading.Thread()
         self.loop = asyncio.new_event_loop()
+        self.logger = logging.getLogger(__name__)
 
     def draw_chart(self, exchange, symbol, timeframe):
+        
+        dpg.delete_item(self.last_chart)
         
         self.exchange = exchange
         self.symbol = symbol
@@ -83,7 +86,7 @@ class Charts:
 
                 if self.thread.is_alive():
                     self.stop_thread()
-                self.start_thread()
+                #self.start_thread()
 
             # Volume plot
             with dpg.plot():
@@ -116,15 +119,15 @@ class Charts:
     def stop_thread(self):
 
         if self.thread.is_alive():
-            logging.info(f"Stopping thread for {self.exchange} {self.symbol} {self.timeframe}")
-            logging.info(f"Deleting chart: {self.tag}")
+            self.logger.info(f"Stopping thread for {self.exchange} {self.symbol} {self.timeframe}")
+            self.logger.info(f"Deleting chart: {self.tag}")
 
             self.loop.stop()
             self.thread.join()
             asyncio.run(self.exchange_object.close())
             return 
         
-        logging.info(f"Deleting chart: {self.tag}")
+        self.logger.info(f"Deleting chart: {self.tag}")
 
 
     async def watch_trades(self, exchange_name, method, symbol):

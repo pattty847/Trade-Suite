@@ -4,8 +4,6 @@ import pandas as pd
 import ccxt
 import ccxt.pro as ccxtpro
 import asyncio
-import logging
-from utils.Timer import Timer
 
 def save_candles_to_file(exchange, symbol, timeframe, candles):
     symbol = symbol.replace("/", "_")
