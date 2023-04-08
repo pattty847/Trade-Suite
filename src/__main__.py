@@ -14,11 +14,7 @@ logging.basicConfig(
 
 
 if __name__ == "__main__":
-    # logging.info("-----------------------------------------------")
-    # logging.info("Starting Trade Suite...")
-    # trade_suite = TradeSuite()
-    # trade_suite.configure_dpg()
-    
+
     # Main entry point to program
     with View_Port(title='Custom Title') as viewport:
         # window = Window('win', viewport.tag, viewport.aggr).build()

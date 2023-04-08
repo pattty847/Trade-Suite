@@ -108,14 +108,15 @@ class CrossUnder_Node(Base_Node):
 
 
 class Strategy_Builder:
-    def __init__(self) -> None:
+    def __init__(self, parent) -> None:
         self.source = ("open", "high", "low", "close", "volume")
         self.nodes = {}  # Keep track of created nodes
+        self.parent = parent
     
     def build_ui(self):
         if dpg.does_alias_exist('strategy_builder'):
             return
-        with dpg.window(label="Strategy Builder", width=700, height=700, tag='strategy_builder') as strategy_builder_window:
+        with dpg.child_window(label="Strategy Builder", width=-1, height=-1, parent=self.parent, tag='strategy_builder', menubar=True) as strategy_builder_window:
             with dpg.menu_bar():
                 with dpg.menu(label="Add Node"):
                     dpg.add_menu_item(label="Data Source", callback=self.add_node, user_data=("Data_Source", strategy_builder_window))
@@ -126,7 +127,7 @@ class Strategy_Builder:
                     dpg.add_menu_item(label="CROSSUNDER", callback=self.add_node, user_data=("CROSSUNDER", strategy_builder_window))
                 dpg.add_menu_item(label="Build", callback=self.build_strategy)
 
-            with dpg.node_editor(parent=strategy_builder_window, callback=lambda sender, app_data: dpg.add_node_link(app_data[0], app_data[1], parent=sender), 
+            with dpg.node_editor(parent=strategy_builder_window, width=-1, height=-1, callback=lambda sender, app_data: dpg.add_node_link(app_data[0], app_data[1], parent=sender), 
                                 delink_callback=lambda sender, app_data: dpg.delete_item(app_data), minimap=True, minimap_location=dpg.mvNodeMiniMap_Location_BottomRight) as self.node_editor:
                 pass
                         

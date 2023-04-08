@@ -6,7 +6,7 @@ class Strategy:
     def __init__(self, parent, viewport):
         self.viewport = viewport
         self.parent = parent
-        self.strategy_builder = Strategy_Builder()
+        self.strategy_builder = Strategy_Builder(parent)
         
         # This will be called and initialized when the user chooses a symbol and timeframe
         self.source = None
@@ -19,12 +19,7 @@ class Strategy:
         self.child_x_pos = viewport_width - child_width
                     
     def build_ui(self):
-        with dpg.child_window(parent=self.parent, width=self.child_x_pos - 12, height=-1, menubar=True):
-            with dpg.menu_bar():
-                dpg.add_menu_item(label="Strategy Builder", callback=self.strategy_builder.build_ui)
-                
-            with dpg.plot(width=-1, height=-1) as self.plot:
-                pass
+        self.strategy_builder.build_ui()
         
         # Create the child window with the specified dimensions and position
         with dpg.child_window(parent=self.parent, width=-1, height=-1, pos=[self.child_x_pos, 50], menubar=True):

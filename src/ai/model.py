@@ -6,7 +6,7 @@ import pandas as pd
 import torch.optim as optim
 import plotly.graph_objs as go
 import logging
-import preprocessing as process
+from .preprocessing import split, create_sliding_window_dataset, normalize, denormalize
 from torch.utils.data import TensorDataset, DataLoader
 from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
 
@@ -114,12 +114,12 @@ def load_data(file):
     :return: A tuple of three numpy arrays:
     :doc-author: Trelent
     """
-    original_data = pd.read_csv(file)
+    original_data = pd.read_csv(file) if isinstance(file, str) else pd.DataFrame(file)
     data = original_data.drop(columns=['dates'])  # Drop the 'dates' column
     data.dropna(inplace=True)
     data = data.values  # Convert DataFrame to NumPy array
     # Normalize the data
-    scaled_data, scaler = process.normalize(data)
+    scaled_data, scaler = normalize(data)
     return original_data, scaled_data, scaler
 
 def convert_to_tensors(X_train, y_train, X_val, y_val, X_test, y_test):
@@ -226,7 +226,7 @@ def train_model(model, train_loader, val_loader, criterion, optimizer, device, n
             print("Early stopping...")
             break
 
-def main():
+def main(data):
     """
     The main function is the entry point of the program.
     It loads data, splits it into training and test sets, creates a model, trains it on the training set and evaluates its performance on the test set.
@@ -235,11 +235,11 @@ def main():
     :return: The value of the last expression evaluated
     :doc-author: Trelent
     """
-    original_data, scaled_data, scaler = load_data("data/exchange/coinbasepro/BTC_USD_1d.csv")
+    original_data, scaled_data, scaler = load_data(data)
 
     window_size = 30
-    X, y = process.create_sliding_window_dataset(scaled_data, window_size)
-    X_train, y_train, X_val, y_val, X_test, y_test = process.split(X, y)
+    X, y = create_sliding_window_dataset(scaled_data, window_size)
+    X_train, y_train, X_val, y_val, X_test, y_test = split(X, y)
 
     input_size = X_train.shape[2]
     hidden_size = 64
@@ -283,8 +283,8 @@ def main():
     print(f"MSE: {mse:.4f}, MAE: {mae:.4f}, R-squared: {r2:.4f}")
 
     # Denormalize the test data and predicted data
-    y_test_denorm = process.denormalize(y_test, scaler)
-    y_pred_denorm = process.denormalize(np.array(y_pred_list), scaler)
+    y_test_denorm = denormalize(y_test, scaler)
+    y_pred_denorm = denormalize(np.array(y_pred_list), scaler)
 
     # Plot the original and predicted close prices
     fig = go.Figure()
