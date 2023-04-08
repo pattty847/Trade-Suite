@@ -2,6 +2,8 @@
 
 Trade Suite is a comprehensive cryptocurrency trading platform that provides users with real-time charting, strategy backtesting, and machine learning capabilities. The platform currently supports 4 exchanges with the potential to add more. Users can also save their favorite charts for quick access, making it easy to stay up-to-date with market conditions.
 
+![train ml](https://user-images.githubusercontent.com/23511285/230723696-0d6eeeaa-416c-4b43-a81d-b2aa4faf0e74.png)
+![Screenshot 2023-04-08 091514](https://user-images.githubusercontent.com/23511285/230723698-50bd8388-c4a5-4366-abf5-35fddecc7a3d.png)
 ![Screenshot 2023-04-07 113251](https://user-images.githubusercontent.com/23511285/230638223-19708a1b-0f44-4829-b01a-efa99d601075.png)
 ![Screenshot 2023-04-07 115111](https://user-images.githubusercontent.com/23511285/230638474-04fbf355-3eff-439e-9233-51e182e01ea8.png)
 
