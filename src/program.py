@@ -27,7 +27,7 @@ class Program:
             with dpg.tab(label='Charts'):
                 with dpg.child_window(menubar=True) as charts:
                     self.chart = Charts(charts, self.viewport)
-                    self.chart.draw_chart('coinbasepro', 'BTC/USD', '1m')
+                    # self.chart.draw_chart('coinbasepro', 'BTC/USD', '1m')
                 
             with dpg.tab(label="Strategy"):
                 with dpg.child_window() as strategy:

@@ -315,6 +315,7 @@ class Charts:
             dpg.add_button(label="Show Favorites", callback=self.show_favorites_window)
             dpg.add_text(tag='added_favorite', wrap=dpg.get_item_width('data_source'))
             
+    # TODO: This was extremely computationally intense. Maybe launch the program after the model is ran.
     def train_ml_model(self, sender, app_data, user_data):
         model = app_data
         model_ = ai.main(self.candles)
