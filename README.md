@@ -42,6 +42,13 @@ cd Trade-Suite
 pip install -r requirements.txt
 ```
 
+## Go to screeninto.py
+- Add this code to line 32
+```
+if is_primary:
+    return [monitor.is_primary for monitor in monitors]
+```
+
 ## Usage
 
 Run the main script to start the application:
@@ -53,6 +60,7 @@ python __main__.py
 ## Contributing
 
 Trade Suite is currently developed by a single developer. Contributions are welcome! Please feel free to open an issue or submit a pull request if you have any improvements or suggestions.
-License
+
+### License
 
 Trade Suite is open-source software licensed under the MIT License. Please see the LICENSE file for more information.
