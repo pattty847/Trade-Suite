@@ -10,9 +10,8 @@ import ccxt
 import data
 import logging
 import ai.model as ai
-from ai.model import LSTMModel
+from orderbook import Orderbook
 from utils.loading import loading_overlay
-from console import Console
 
 class Charts:
     def __init__(self, parent, viewport):
@@ -26,9 +25,7 @@ class Charts:
         self.candlestick_plot_tag = self.id + "_candle_series"
         self.volume_plot_tag = self.id + "_volume_plot"
 
-        self.console = Console(1000, self.tag)
-        self.last_chart = None
-    
+        self.last_chart = None    
 
         self.thread = threading.Thread()
         self.loop = asyncio.new_event_loop()
@@ -43,6 +40,7 @@ class Charts:
                 dpg.add_combo(label="Exchange", items=['coinbasepro', 'kucoin', 'kraken', 'cryptocom'], width=150, callback=self.add_source_modal)
                 
             dpg.add_menu_item(label='Favorites', callback=self.show_favorites_window)
+            dpg.add_menu_item(label="Orderbook", callback=self.show_orderbook)
             with dpg.menu(label='Train ML'):
                 dpg.add_combo(['LSTM'], label='Model', callback=self.train_ml_model)
                 
@@ -319,3 +317,6 @@ class Charts:
     def train_ml_model(self, sender, app_data, user_data):
         model = app_data
         model_ = ai.main(self.candles)
+        
+    def show_orderbook(self):
+        self.orderbook = Orderbook(self.exchange, self.exchange, self.symbol, 20)

@@ -1,7 +1,7 @@
 import dearpygui.dearpygui as dpg
 import ccxt.pro as ccxtpro
 import ccxt
-from .loading import loading_overlay
+from utils.loading import loading_overlay
 from .data import DataCollector
 
 # Base Node will define the following attributes which represent a base class for each node added.

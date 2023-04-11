@@ -104,10 +104,10 @@ async def fetch(exchange_name, symbol, limit):
         try:
             # watch the data using the specified method
             orderbook = await getattr(exchange, "watchOrderBook")(symbol, limit)
-            trades = await getattr(exchange, "watchTrades")(symbol)
+            # trades = await getattr(exchange, "watchTrades")(symbol)
 
             if orderbook['bids'] and orderbook['asks']:
-                print(trades)
+                # print(trades)
                 print(orderbook['bids'][0], orderbook['asks'][0])
 
         except KeyboardInterrupt:
