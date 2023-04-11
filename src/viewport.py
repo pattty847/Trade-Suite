@@ -1,3 +1,4 @@
+import asyncio
 import logging
 import threading
 import dearpygui.dearpygui as dpg
@@ -27,7 +28,8 @@ class View_Port:
         self.monitor = get_monitors(is_primary=True)[0]
         self.logger.info(f"Primary Monitor: {self.monitor}")
         self.window_x, self.window_y, self.window_width, self.window_height = self.get_centered_window_dimensions_(self.monitor)
-
+        self.exchange_objects = []
+        
     def __enter__(self):
         self.logger.info("Setting up DearPyGUI.")
         dpg.create_context()
@@ -54,7 +56,15 @@ class View_Port:
         self.logger.info("Running DearPyGUI loop.")
         while dpg.is_dearpygui_running():
             dpg.render_dearpygui_frame()
+            
+    def register_exchange(self, exchange):
+        self.exchange_objects.append(exchange)
+        
+    async def close_exchanges(self):
+        for exchange in self.exchange_objects:
+            await exchange.close()  
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.logger.info("Destroying DearPyGUI context.")
+        asyncio.run(self.close_exchanges())
         dpg.destroy_context()

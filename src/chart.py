@@ -7,9 +7,9 @@ import dearpygui.demo as demo
 import utils.do_stuff as do
 import ccxt.pro as ccxtpro
 import ccxt
-import data
 import logging
-import ai.model as ai
+from data import Data
+# import ai.model as ai
 from orderbook import Orderbook
 from utils.loading import loading_overlay
 
@@ -26,9 +26,8 @@ class Charts:
         self.volume_plot_tag = self.id + "_volume_plot"
 
         self.last_chart = None    
+        self.data = Data()
 
-        self.thread = threading.Thread()
-        self.loop = asyncio.new_event_loop()
         self.logger = logging.getLogger(__name__)
         self.load_favorites()
         
@@ -64,7 +63,7 @@ class Charts:
 
         with loading_overlay():
             self.candles = asyncio.run(
-                data.fetch_candles(
+                self.data.fetch_candles(
                     self.exchange,
                     self.symbol,
                     self.timeframe,
@@ -109,9 +108,9 @@ class Charts:
                     dpg.fit_axis_data(dpg.top_container_stack())
                     dpg.fit_axis_data(xaxis_candles)
 
-                if self.thread.is_alive():
-                    self.stop_thread()
-                #self.start_thread()
+                if self.data.thread.is_alive():
+                    self.data.stop_thread()
+                self.data.start_thread(self.exchange, self.symbol, self.update_chart, self.viewport)
 
             # Volume plot
             with dpg.plot():
@@ -128,55 +127,9 @@ class Charts:
                     dpg.fit_axis_data(dpg.top_container_stack())
                     dpg.fit_axis_data(xaxis_vol)
 
-    def start_thread(self):
-        print("Starting.")
-        self.thread = threading.Thread(target=self.start_loop)
-        self.thread.start()
-
-    def start_loop(self):
-        asyncio.set_event_loop(self.loop)
-
-        self.loop.create_task(self.watch_trades(self.exchange, "watchTrades", self.symbol))
-
-        self.loop.run_forever()
-
-    def stop_thread(self):
-
-        if self.thread.is_alive():
-            self.logger.info(f"Stopping thread for {self.exchange} {self.symbol} {self.timeframe}")
-            self.logger.info(f"Deleting chart: {self.tag}")
-
-            self.loop.stop()
-            self.thread.join()
-            asyncio.run(self.exchange_object.close())
-            return 
-        
-        self.logger.info(f"Deleting chart: {self.tag}")
-
-
-    async def watch_trades(self, exchange_name, method, symbol):
-        exchange_class = getattr(ccxtpro, exchange_name)
-        self.exchange_object = exchange_class(
-            {
-                "enableRateLimit": True,  # add rate limiter
-            }
-        )
-        while self.thread.is_alive():
-            try:
-                # watch the data using the specified method
-                trades = await getattr(self.exchange_object, f"{method}")(symbol)
-
-                print(trades)
-
-                self.update_chart(trades)
-            except ccxt.BaseError as e:
-                await self.exchange_object.close()
-
-        await self.exchange_object.close()
-
-    def update_chart(self, trades):
+    def update_chart(self, trades, exchange_object):
         # store the timeframe in milliseconds
-        self.timeframe_ms = self.exchange_object.parse_timeframe(self.timeframe) * 1000
+        self.timeframe_ms = exchange_object.parse_timeframe(self.timeframe) * 1000
         self.close_time = self.candles['dates'][-1] * 1000 + self.timeframe_ms
 
         # Get the last candle in the chart
@@ -316,7 +269,7 @@ class Charts:
     # TODO: This was extremely computationally intense. Maybe launch the program after the model is ran.
     def train_ml_model(self, sender, app_data, user_data):
         model = app_data
-        model_ = ai.main(self.candles)
+        # model_ = ai.main(self.candles)
         
     def show_orderbook(self):
         self.orderbook = Orderbook(self.exchange, self.exchange, self.symbol, 20)

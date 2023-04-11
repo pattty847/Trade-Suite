@@ -22,32 +22,32 @@ class Orderbook():
             
             with dpg.menu_bar():
                 with dpg.menu(label="Spread"):
-                    dpg.add_slider_int(label="slider float", max_value=10, callback=self.set_spread)
+                    self.spread = dpg.add_slider_int(label="Spread $", default_value=200, max_value=500)
         
             with dpg.plot(width=-1, height=-1):
                 self.xaxis = dpg.add_plot_axis(dpg.mvXAxis, label="Price", no_gridlines=True)
                 with dpg.plot_axis(dpg.mvYAxis):
                     # dpg.set_axis_limits(dpg.last_item(), 0, 110)
-                    self.bid_series = dpg.add_bar_series([], [], label="Bids", weight=1)
-                    self.ask_series = dpg.add_bar_series([], [], label="Asks", weight=1)
+                    self.bid_series = dpg.add_bar_series([], [], label="Bids", weight=0.1)
+                    self.ask_series = dpg.add_bar_series([], [], label="Asks", weight=0.1)
             
         asyncio.run(self.fetch_data())
 
     async def fetch_data(self):
         async def fetch(exchange_name, symbol, limit):
             exchange_class = getattr(ccxtpro, exchange_name)
-            exchange = exchange_class({"enableRateLimit": True, "newUpdates": True})
+            self.exchange = exchange_class({"enableRateLimit": True, "newUpdates": True})
 
             while True:
                 try:
-                    self.orderbook = await getattr(exchange, "watchOrderBook")(symbol, limit)
+                    self.orderbook = await getattr(self.exchange, "watchOrderBook")(symbol, limit)
 
                     if self.orderbook['bids'] and self.orderbook['asks']:
                         self.update_chart()
 
                 except KeyboardInterrupt:
                     print("KeyboardInterrupt detected. Closing exchange...")
-                    await exchange.close()
+                    await self.exchange.close()
                     break
 
             print("Exchange closed.")
@@ -64,22 +64,17 @@ class Orderbook():
         # dpg.set_axis_limits(dpg.last_item(), 0, 110)
         dpg.configure_item(self.bid_series, x=bid_prices, y=bid_sizes)
         dpg.configure_item(self.ask_series, x=ask_prices, y=ask_sizes)
+
+        spread = dpg.get_value(self.spread)
         mid = (self.orderbook['bids'][0][0] + self.orderbook['asks'][0][0]) / 2
-        lower_limit = mid * 0.99
-        upper_limit = mid * 1.01
-        # print(mid, lower_limit, upper_limit)
+        lower_limit = mid - spread
+        upper_limit = mid + spread
 
         dpg.set_axis_limits(self.xaxis, lower_limit, upper_limit)
-
+        
+    async def close_exchange(self):
+        await self.exchange.close()
 
     def on_close(self):
+        asyncio.run(self.close_exchange())
         dpg.delete_item(self.tag)
-        
-    def set_spread(self, sender, app_data, user_data):
-        print(sender, app_data, user_data)
-        # mid = (self.orderbook['bids'][0][0] + self.orderbook['asks'][0][0]) / 2
-        # lower_limit = mid * 0.9
-        # upper_limit = mid * 1.1
-        # print(mid, lower_limit, upper_limit)
-
-        # dpg.set_axis_limits(self.xaxis, lower_limit, upper_limit)
