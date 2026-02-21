@@ -1,4 +1,4 @@
-# PROJECT MOVED: [HERE](https://github.com/pattty847/Trade-Suite-v2)
+# Trade Suite v2 ->: [HERE](https://github.com/pattty847/Trade-Suite-v2)
 
 # Trade-Suite - Made with CCXTPRO and DEARPYGUI.
 
@@ -66,3 +66,4 @@ Trade Suite is currently developed by a single developer. Contributions are welc
 ### License
 
 Trade Suite is open-source software licensed under the MIT License. Please see the LICENSE file for more information.
+
