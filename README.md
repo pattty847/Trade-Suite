@@ -1,6 +1,4 @@
-# Trade Suite v2 ->: [HERE](https://github.com/pattty847/Trade-Suite-v2)
-
-# Trade-Suite - Made with CCXTPRO and DEARPYGUI.
+# Trade Suite v2 ->[HERE](https://github.com/pattty847/Trade-Suite-v2)
 
 Trade Suite is a comprehensive cryptocurrency trading platform that provides users with real-time charting, strategy backtesting, and machine learning capabilities. The platform currently supports 4 exchanges with the potential to add more. Users can also save their favorite charts for quick access, making it easy to stay up-to-date with market conditions.
 
@@ -66,4 +64,5 @@ Trade Suite is currently developed by a single developer. Contributions are welc
 ### License
 
 Trade Suite is open-source software licensed under the MIT License. Please see the LICENSE file for more information.
+
 
